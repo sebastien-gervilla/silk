@@ -1,3 +1,5 @@
+pub mod tests;
+
 use crate::token::{
     Token, // TODO: This may belong to lexer instead of token
     TokenKind,
@@ -97,7 +99,7 @@ impl<'a> Lexer<'a> {
             self.next_character();
         }
 
-        return match String::from_utf8(self.code[initial_position..self.position].to_vec()) {
+        return match String::from_utf8(self.code[initial_position..self.position + 1].to_vec()) {
             Ok(string) => string,
             Err(error) => panic!("{error}")
         };
@@ -109,7 +111,7 @@ impl<'a> Lexer<'a> {
             self.next_character();
         }
 
-        return match String::from_utf8(self.code[initial_position..self.position].to_vec()) {
+        return match String::from_utf8(self.code[initial_position..self.position + 1].to_vec()) {
             Ok(string) => string,
             Err(error) => panic!("{error}")
         };

@@ -12,7 +12,7 @@ fn main() {
     let mut token = lexer.next_token();
     println!("Starting lexing...");
     while token.kind != TokenKind::EOF {
-        token = lexer.next_token();
         println!("Token {:?}: {}", token.kind, token.value);
+        token = lexer.next_token();
     }
 }
