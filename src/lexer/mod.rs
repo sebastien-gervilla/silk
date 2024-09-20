@@ -49,11 +49,12 @@ impl<'a> Lexer<'a> {
         } else {
             if self.is_valid_character() {
                 token.value = self.read_identifier();
-                println!("-{}-", token.value);
                 token.kind = get_token_kind(&self.keywords, &token.value);
+                return token
             } else if self.is_digit() {
                 token.value = self.read_number();
                 token.kind = TokenKind::NUMBER;
+                return token
             } else if self.character == 0 {
                 token.kind = TokenKind::EOF;
             }
@@ -66,6 +67,7 @@ impl<'a> Lexer<'a> {
 
     fn next_character(&mut self) {
         if self.peek_position >= self.code.len() {
+            self.position = self.code.len();
             self.character = 0;
             return;
         }
@@ -97,7 +99,6 @@ impl<'a> Lexer<'a> {
     fn read_identifier(&mut self) -> String {
         let initial_position = self.position;
         while self.is_valid_character() {
-            println!("{:?}", String::from_utf8(self.code[initial_position..self.position].to_vec()));
             self.next_character();
         }
 
@@ -113,7 +114,7 @@ impl<'a> Lexer<'a> {
             self.next_character();
         }
 
-        return match String::from_utf8(self.code[initial_position..self.position + 1].to_vec()) {
+        return match String::from_utf8(self.code[initial_position..self.position].to_vec()) {
             Ok(string) => string,
             Err(error) => panic!("{error}")
         };
