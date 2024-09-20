@@ -106,6 +106,7 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
     // TODO: Allow for initialization only
     parser.assert_peek(TokenKind::ASSIGN);
 
+    parser.next_token();
     let expression = parse_expression(parser);
 
     parser.assert_peek(TokenKind::SEMICOLON);

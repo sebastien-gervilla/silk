@@ -25,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_parse_let_statement() {
-        let code = String::from("let x = ");
+        let code = String::from("let x = 10;");
 
         test_parse(&code);
     }
