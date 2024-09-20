@@ -1,19 +1,28 @@
 use crate::token::Token;
 
-struct Node {
-    token: Token,
+pub struct Node {
+    pub token: Token,
 }
 
-struct LetStatement<'a> {
-    node: Node,
-    identifier: &'a Identifier,
-    expression: Option<Expression>
+pub struct File {
+    pub node: Node,
+    pub statements: Vec<Statement>
 }
 
-struct Expression {
+pub enum Statement {
+    Let(LetStatement)
+}
+
+pub struct LetStatement {
+    pub node: Node,
+    pub identifier: Identifier,
+    pub expression: Option<Expression>
+}
+
+pub struct Expression {
 
 }
 
-struct Identifier {
-    value: String
+pub struct Identifier {
+    pub value: String
 }

@@ -38,6 +38,7 @@ pub fn get_token_kind(keywords: &Keywords, identifier: &str) -> TokenKind {
     }
 }
 
+#[derive(Clone)]
 pub struct Token {
     pub kind: TokenKind,
     pub value: String
