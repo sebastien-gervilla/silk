@@ -9,20 +9,27 @@ pub struct File {
     pub statements: Vec<Statement>
 }
 
+// Statements
 pub enum Statement {
     Let(LetStatement)
 }
 
 pub struct LetStatement {
     pub node: Node,
-    pub identifier: Identifier,
+    pub identifier: Expression,
     pub expression: Option<Expression>
 }
 
-pub struct Expression {
-
+// Expressions
+pub enum Expression {
+    Identifier(Identifier),
+    NumberLiteral(NumberLiteral)
 }
 
 pub struct Identifier {
     pub value: String
+}
+
+pub struct NumberLiteral {
+    pub value: isize
 }

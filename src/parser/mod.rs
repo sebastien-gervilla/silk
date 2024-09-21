@@ -126,6 +126,18 @@ fn parse_identifier(parser: &Parser) -> ast::Identifier {
     }
 }
 
-fn parse_expression(parser: &Parser) -> ast::Expression {
-    ast::Expression {  }
+fn parse_number_literal(parser: &mut Parser) -> ast::Expression {
+    let value = match parser.current_token.value.parse::<isize>() {
+        Ok(value) => value,
+        Err(error) => {
+            parser.add_error(error.to_string());
+            0 // TODO: We want to handle this differently later on
+        },
+    };
+
+    ast::Expression::NumberLiteral(
+        ast::NumberLiteral {
+            value
+        }
+    )
 }
