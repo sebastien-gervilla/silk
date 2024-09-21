@@ -1,16 +1,56 @@
 pub mod tests;
 
+use std::collections::HashMap;
+
 use crate::{
     ast, 
     lexer::Lexer, 
     token::{Token, TokenKind}
 };
 
+// Precedences
+#[derive(Clone, PartialEq, PartialOrd)]
+pub enum Precedence {
+    LOWEST,
+}
+
+type Precedences = HashMap<TokenKind, Precedence>;
+
+fn get_precedences() -> Precedences {
+    let mut precedences = Precedences::with_capacity(1);
+
+    precedences
+}
+
+type PrefixParsingFunction = fn(&mut Parser) -> ast::Expression;
+type InfixParsingFunction = fn(&mut Parser, ast::Expression) -> ast::Expression;
+
+type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
+type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
+
+fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(2);
+
+    functions.insert(TokenKind::IDENTIFIER, parse_identifier);
+    functions.insert(TokenKind::NUMBER, parse_number_literal);
+
+    return functions
+}
+
+fn get_infix_parsing_functions() -> InfixParsingFunctions {
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(0);
+
+    return functions
+}
+
 pub struct Parser<'a> {
     lexer: &'a mut Lexer<'a>,
     current_token: Token,
     peek_token: Token,
-    errors: Vec<String>
+    errors: Vec<String>,
+    prefix_parsing_functions: PrefixParsingFunctions,
+    infix_parsing_functions: InfixParsingFunctions,
+    precedences: Precedences
 }
 
 impl<'a> Parser<'a> {
@@ -22,7 +62,10 @@ impl<'a> Parser<'a> {
             lexer,
             current_token,
             peek_token,
-            errors: vec![]
+            errors: vec![],
+            prefix_parsing_functions: get_prefix_parsing_functions(),
+            infix_parsing_functions: get_infix_parsing_functions(),
+            precedences: get_precedences()
         }
     }
 
@@ -53,6 +96,17 @@ impl<'a> Parser<'a> {
         self.current_token.clone()
     }
 
+    pub fn is_peek_token(&self, token_kind: TokenKind) -> bool {
+        self.peek_token.kind == token_kind
+    }
+
+    pub fn get_peek_precedence(&self) -> Precedence {
+        match self.precedences.get(&self.peek_token.kind) {
+            Some(precedence) => precedence.clone(),
+            None => Precedence::LOWEST,
+        }
+    }
+
     pub fn add_error(&mut self, error: String) {
         self.errors.push(error);
     }
@@ -77,6 +131,8 @@ pub fn parse_file(parser: &mut Parser) -> ast::File {
 
     return file
 }
+
+// Statements
 
 fn parse_statement(parser: &mut Parser) -> Option<ast::Statement> {
     match parser.current_token.kind {
@@ -107,7 +163,7 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
     parser.assert_peek(TokenKind::ASSIGN);
 
     parser.next_token();
-    let expression = parse_expression(parser);
+    let expression = parse_expression(parser, Precedence::LOWEST);
 
     parser.assert_peek(TokenKind::SEMICOLON);
 
@@ -120,10 +176,38 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
     )
 }
 
-fn parse_identifier(parser: &Parser) -> ast::Identifier {
-    ast::Identifier {
-        value: parser.current_token.value.clone()
+// Expressions
+
+fn parse_expression(parser: &mut Parser, precedence: Precedence) -> ast::Expression {
+    let prefix_function = match parser.prefix_parsing_functions.get(&parser.current_token.kind) {
+        Some(prefix_function) => *prefix_function,
+        None => {
+            parser.add_error("".to_string());
+            panic!("TODO")
+        }
+    };
+
+    let mut left_expression = prefix_function(parser);
+    
+    while !parser.is_peek_token(TokenKind::SEMICOLON) && precedence < parser.get_peek_precedence() {
+        let infix_function = match parser.infix_parsing_functions.get(&parser.peek_token.kind) {
+            Some(infix_function) => *infix_function,
+            None => return left_expression
+        };
+
+        parser.next_token();
+        left_expression = infix_function(parser, left_expression);
     }
+
+    return left_expression
+}
+
+fn parse_identifier(parser: &mut Parser) -> ast::Expression {
+    ast::Expression::Identifier(
+        ast::Identifier {
+            value: parser.current_token.value.clone()
+        }
+    )
 }
 
 fn parse_number_literal(parser: &mut Parser) -> ast::Expression {
