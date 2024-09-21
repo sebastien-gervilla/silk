@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 // Tokens
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TokenKind {
     // Misc
     UNKNOW,
@@ -9,6 +9,7 @@ pub enum TokenKind {
     // Literals
     IDENTIFIER,
     NUMBER,
+    STRING,
 
     // Delimiters
     EOF,

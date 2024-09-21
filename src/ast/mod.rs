@@ -23,7 +23,8 @@ pub struct LetStatement {
 // Expressions
 pub enum Expression {
     Identifier(Identifier),
-    NumberLiteral(NumberLiteral)
+    NumberLiteral(NumberLiteral),
+    StringLiteral(StringLiteral),
 }
 
 pub struct Identifier {
@@ -32,4 +33,8 @@ pub struct Identifier {
 
 pub struct NumberLiteral {
     pub value: isize
+}
+
+pub struct StringLiteral {
+    pub value: String
 }

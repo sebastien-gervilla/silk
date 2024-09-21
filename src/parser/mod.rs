@@ -29,10 +29,11 @@ type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
 type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
-    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(2);
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(3);
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
+    functions.insert(TokenKind::STRING, parse_string_literal);
 
     return functions
 }
@@ -222,6 +223,14 @@ fn parse_number_literal(parser: &mut Parser) -> ast::Expression {
     ast::Expression::NumberLiteral(
         ast::NumberLiteral {
             value
+        }
+    )
+}
+
+fn parse_string_literal(parser: &mut Parser) -> ast::Expression {
+    ast::Expression::StringLiteral(
+        ast::StringLiteral {
+            value: parser.current_token.value.clone()
         }
     )
 }

@@ -29,4 +29,12 @@ mod tests {
 
         test_parse(&code);
     }
+
+    #[test]
+    fn test_parse_string_literal() {
+        let code = String::from("let x = \"aD_67'le\";");
+
+        test_parse(&code);
+    }
+
 }
