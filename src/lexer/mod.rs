@@ -45,7 +45,10 @@ impl<'a> Lexer<'a> {
         match self.character {
             b'=' => token.kind = TokenKind::ASSIGN,
             b';' => token.kind = TokenKind::SEMICOLON,
-            b'"' => token.kind = TokenKind::STRING,
+            b'"' => {
+                token.kind = TokenKind::STRING;
+                token.value = self.read_string();
+            },
             b'+' => token.kind = TokenKind::PLUS,
             b'-' => token.kind = TokenKind::MINUS,
             b'*' => token.kind = TokenKind::ASTERISK,
