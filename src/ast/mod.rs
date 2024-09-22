@@ -11,13 +11,19 @@ pub struct File {
 
 // Statements
 pub enum Statement {
-    Let(LetStatement)
+    Let(LetStatement),
+    Expression(ExpressionStatement),
 }
 
 pub struct LetStatement {
     pub node: Node,
     pub identifier: Box<Expression>,
-    pub expression: Option<Box<Expression>>
+    pub expression: Option<Box<Expression>>,
+}
+
+pub struct ExpressionStatement {
+    pub node: Node,
+    pub expression: Box<Expression>,
 }
 
 // Expressions

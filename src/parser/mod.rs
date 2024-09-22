@@ -140,10 +140,7 @@ pub fn parse_file(parser: &mut Parser) -> ast::File {
     };
 
     while parser.peek_token.kind != TokenKind::EOF {
-        if let Some(statement) = parse_statement(parser) {
-            file.statements.push(statement);
-        }
-
+        file.statements.push(parse_statement(parser));
         parser.next_token();
     }
 
@@ -152,18 +149,10 @@ pub fn parse_file(parser: &mut Parser) -> ast::File {
 
 // Statements
 
-fn parse_statement(parser: &mut Parser) -> Option<ast::Statement> {
+fn parse_statement(parser: &mut Parser) -> ast::Statement {
     match parser.current_token.kind {
-        TokenKind::LET => Some(parse_let_stament(parser)),
-        _ => {
-            parser.add_error(
-                String::from(
-                    format!("Unsupported statement {:?}", parser.current_token.value)
-                )
-            );
-
-            None
-        }
+        TokenKind::LET => parse_let_stament(parser),
+        _ => parse_expression_statement(parser)
     }
 }
 
@@ -192,6 +181,21 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
             expression: Some(expression)
         }
     )
+}
+
+fn parse_expression_statement(parser: &mut Parser) -> ast::Statement {
+    let expression = ast::Statement::Expression(
+        ast::ExpressionStatement {
+            node: ast::Node {
+                token: parser.get_current_token()
+            },
+            expression: parse_expression(parser, Precedence::LOWEST)
+        }
+    );
+
+    parser.assert_peek(TokenKind::SEMICOLON);
+
+    return expression
 }
 
 // Expressions
