@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 // Tokens
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TokenKind {
     // Misc
@@ -12,6 +13,11 @@ pub enum TokenKind {
     STRING,
 
     // Operators
+    NOT,
+	EQUALS,
+	NOT_EQUALS,
+	GREATER_THAN,
+	LESS_THAN,
     PLUS,
     MINUS,
     ASTERISK,

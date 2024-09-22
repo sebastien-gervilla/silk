@@ -12,9 +12,11 @@ use crate::{
 #[derive(Clone, PartialEq, PartialOrd)]
 pub enum Precedence {
     LOWEST,
-	SUM,        // +, -
-	PRODUCT,    // *, /
-	PREFIX,     // -expression, !expression
+	EQUALITY,       // ==, !=
+	LESSGREATER,    // >, <
+	SUM,            // +, -
+	PRODUCT,        // *, /
+	PREFIX,         // -expression, !expression
 }
 
 type Precedences = HashMap<TokenKind, Precedence>;
@@ -22,6 +24,10 @@ type Precedences = HashMap<TokenKind, Precedence>;
 fn get_precedences() -> Precedences {
     let mut precedences = Precedences::with_capacity(4);
 
+    precedences.insert(TokenKind::EQUALS, Precedence::EQUALITY);
+    precedences.insert(TokenKind::NOT_EQUALS, Precedence::EQUALITY);
+    precedences.insert(TokenKind::GREATER_THAN, Precedence::LESSGREATER);
+    precedences.insert(TokenKind::LESS_THAN, Precedence::LESSGREATER);
     precedences.insert(TokenKind::PLUS, Precedence::SUM);
     precedences.insert(TokenKind::MINUS, Precedence::SUM);
     precedences.insert(TokenKind::ASTERISK, Precedence::PRODUCT);
@@ -37,24 +43,28 @@ type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
 type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
-    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(4);
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(5);
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
 
+    functions.insert(TokenKind::NOT, parse_prefix_expression);
     functions.insert(TokenKind::MINUS, parse_prefix_expression);
 
     return functions
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(4);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(8);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
     functions.insert(TokenKind::ASTERISK, parse_infix_expression);
-    functions.insert(TokenKind::SLASH, parse_infix_expression);
+    functions.insert(TokenKind::EQUALS, parse_infix_expression);
+    functions.insert(TokenKind::NOT_EQUALS, parse_infix_expression);
+    functions.insert(TokenKind::GREATER_THAN, parse_infix_expression);
+    functions.insert(TokenKind::LESS_THAN, parse_infix_expression);
 
     return functions
 }

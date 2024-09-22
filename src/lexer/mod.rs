@@ -43,12 +43,31 @@ impl<'a> Lexer<'a> {
         };
 
         match self.character {
-            b'=' => token.kind = TokenKind::ASSIGN,
+            b'=' => {
+                if self.get_next_character() == b'=' {
+                    self.next_character();
+                    token.kind = TokenKind::EQUALS;
+                    token.value = String::from("==");
+                } else {
+                    token.kind = TokenKind::ASSIGN;
+                }
+            },
             b';' => token.kind = TokenKind::SEMICOLON,
             b'"' => {
                 token.kind = TokenKind::STRING;
                 token.value = self.read_string();
             },
+            b'!' => {
+                if self.get_next_character() == b'=' {
+                    self.next_character();
+                    token.kind = TokenKind::NOT_EQUALS;
+                    token.value = String::from("!=");
+                } else {
+                    token.kind = TokenKind::NOT;
+                }
+            },
+            b'>' => token.kind = TokenKind::GREATER_THAN,
+            b'<' => token.kind = TokenKind::LESS_THAN,
             b'+' => token.kind = TokenKind::PLUS,
             b'-' => token.kind = TokenKind::MINUS,
             b'*' => token.kind = TokenKind::ASTERISK,
@@ -83,6 +102,14 @@ impl<'a> Lexer<'a> {
         self.character = self.code[self.peek_position];
         self.position = self.peek_position;
         self.peek_position += 1;
+    }
+
+    fn get_next_character(&mut self) -> u8 {
+        if self.peek_position >= self.code.len() {
+            return 0
+        }
+
+        return self.code[self.peek_position]
     }
 
     fn skip_whitespace(&mut self) {

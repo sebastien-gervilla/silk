@@ -52,4 +52,28 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_comparison() {
+        let code = String::from("1 == 2;");
+        test_parse(&code);
+
+        let code = String::from("6 != 21;");
+        test_parse(&code);
+
+        let code = String::from("24 > 3;");
+        test_parse(&code);
+
+        let code = String::from("8 < 93;");
+        test_parse(&code);
+    }
+
+    #[test]
+    fn test_parse_prefix() {
+        let code = String::from("-2;");
+        test_parse(&code);
+
+        let code = String::from("!4;");
+        test_parse(&code);
+    }
+
 }
