@@ -22,7 +22,7 @@ pub enum Precedence {
 type Precedences = HashMap<TokenKind, Precedence>;
 
 fn get_precedences() -> Precedences {
-    let mut precedences = Precedences::with_capacity(4);
+    let mut precedences = Precedences::with_capacity(8);
 
     precedences.insert(TokenKind::EQUALS, Precedence::EQUALITY);
     precedences.insert(TokenKind::NOT_EQUALS, Precedence::EQUALITY);
