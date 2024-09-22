@@ -12,6 +12,9 @@ use crate::{
 #[derive(Clone, PartialEq, PartialOrd)]
 pub enum Precedence {
     LOWEST,
+	SUM,        // +, -
+	PRODUCT,    // *, /
+	PREFIX,     // -expression, !expression
 }
 
 type Precedences = HashMap<TokenKind, Precedence>;
@@ -22,24 +25,31 @@ fn get_precedences() -> Precedences {
     precedences
 }
 
-type PrefixParsingFunction = fn(&mut Parser) -> ast::Expression;
-type InfixParsingFunction = fn(&mut Parser, ast::Expression) -> ast::Expression;
+type PrefixParsingFunction = fn(&mut Parser) -> Box<ast::Expression>;
+type InfixParsingFunction = fn(&mut Parser, Box<ast::Expression>) -> Box<ast::Expression>;
 
 type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
 type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
-    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(3);
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(4);
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
 
+    functions.insert(TokenKind::MINUS, parse_prefix_expression);
+
     return functions
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(0);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(4);
+
+    functions.insert(TokenKind::PLUS, parse_infix_expression);
+    functions.insert(TokenKind::MINUS, parse_infix_expression);
+    functions.insert(TokenKind::ASTERISK, parse_infix_expression);
+    functions.insert(TokenKind::SLASH, parse_infix_expression);
 
     return functions
 }
@@ -103,6 +113,13 @@ impl<'a> Parser<'a> {
 
     pub fn get_peek_precedence(&self) -> Precedence {
         match self.precedences.get(&self.peek_token.kind) {
+            Some(precedence) => precedence.clone(),
+            None => Precedence::LOWEST,
+        }
+    }
+
+    pub fn get_current_precedence(&self) -> Precedence {
+        match self.precedences.get(&self.current_token.kind) {
             Some(precedence) => precedence.clone(),
             None => Precedence::LOWEST,
         }
@@ -179,7 +196,7 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
 
 // Expressions
 
-fn parse_expression(parser: &mut Parser, precedence: Precedence) -> ast::Expression {
+fn parse_expression(parser: &mut Parser, precedence: Precedence) -> Box<ast::Expression> {
     let prefix_function = match parser.prefix_parsing_functions.get(&parser.current_token.kind) {
         Some(prefix_function) => *prefix_function,
         None => {
@@ -203,15 +220,17 @@ fn parse_expression(parser: &mut Parser, precedence: Precedence) -> ast::Express
     return left_expression
 }
 
-fn parse_identifier(parser: &mut Parser) -> ast::Expression {
-    ast::Expression::Identifier(
-        ast::Identifier {
-            value: parser.current_token.value.clone()
-        }
+fn parse_identifier(parser: &mut Parser) -> Box<ast::Expression> {
+    Box::new(
+        ast::Expression::Identifier(
+            ast::Identifier {
+                value: parser.current_token.value.clone()
+            }
+        )
     )
 }
 
-fn parse_number_literal(parser: &mut Parser) -> ast::Expression {
+fn parse_number_literal(parser: &mut Parser) -> Box<ast::Expression> {
     let value = match parser.current_token.value.parse::<isize>() {
         Ok(value) => value,
         Err(error) => {
@@ -220,17 +239,64 @@ fn parse_number_literal(parser: &mut Parser) -> ast::Expression {
         },
     };
 
-    ast::Expression::NumberLiteral(
-        ast::NumberLiteral {
-            value
-        }
+    Box::new(
+        ast::Expression::NumberLiteral(
+            ast::NumberLiteral {
+                value
+            }
+        )
     )
 }
 
-fn parse_string_literal(parser: &mut Parser) -> ast::Expression {
-    ast::Expression::StringLiteral(
-        ast::StringLiteral {
-            value: parser.current_token.value.clone()
-        }
+fn parse_string_literal(parser: &mut Parser) -> Box<ast::Expression> {
+    Box::new(
+        ast::Expression::StringLiteral(
+            ast::StringLiteral {
+                value: parser.current_token.value.clone()
+            }
+        )
+    )
+}
+
+fn parse_prefix_expression(parser: &mut Parser) -> Box<ast::Expression> {
+
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    let operator = parser.current_token.value.clone();
+
+    parser.next_token();
+
+    Box::new(
+        ast::Expression::Prefix(
+            ast::PrefixExpression {
+                node,
+                operator,
+                expression: parse_expression(parser, Precedence::PREFIX)
+            }
+        )
+    )
+}
+
+fn parse_infix_expression(parser: &mut Parser, left_expression: Box<ast::Expression>) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    let precedence = parser.get_current_precedence();
+    let operator = parser.current_token.value.clone();
+
+    parser.next_token();
+
+    Box::new(
+        ast::Expression::Infix(
+            ast::InfixExpression {
+                node,
+                operator,
+                left_expression,
+                right_expression: parse_expression(parser, precedence)
+            }
+        )
     )
 }

@@ -41,25 +41,23 @@ impl<'a> Lexer<'a> {
             kind: TokenKind::UNKNOW,
             value: self.u8_to_string(self.character)
         };
-        
-        if self.character == b'=' {
-            token.kind = TokenKind::ASSIGN;
-        } else if self.character == b';' {
-            token.kind = TokenKind::SEMICOLON;
-        } else if self.character == b'"' {
-            token.kind = TokenKind::STRING;
-            token.value = self.read_string();
-        } else {
-            if self.is_valid_character() {
-                token.value = self.read_identifier();
-                token.kind = get_token_kind(&self.keywords, &token.value);
-                return token
-            } else if self.is_digit() {
-                token.value = self.read_number();
-                token.kind = TokenKind::NUMBER;
-                return token
-            } else if self.character == 0 {
-                token.kind = TokenKind::EOF;
+
+        match self.character {
+            b'=' => token.kind = TokenKind::ASSIGN,
+            b';' => token.kind = TokenKind::SEMICOLON,
+            b'"' => token.kind = TokenKind::STRING,
+            _ => {
+                if self.is_valid_character() {
+                    token.value = self.read_identifier();
+                    token.kind = get_token_kind(&self.keywords, &token.value);
+                    return token
+                } else if self.is_digit() {
+                    token.value = self.read_number();
+                    token.kind = TokenKind::NUMBER;
+                    return token
+                } else if self.character == 0 {
+                    token.kind = TokenKind::EOF;
+                }
             }
         }
 

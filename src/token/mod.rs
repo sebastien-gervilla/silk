@@ -11,6 +11,12 @@ pub enum TokenKind {
     NUMBER,
     STRING,
 
+    // Operators
+    PLUS,
+    MINUS,
+    ASTERISK,
+    SLASH,
+
     // Delimiters
     EOF,
     SEMICOLON,
