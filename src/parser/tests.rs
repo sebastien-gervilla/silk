@@ -38,6 +38,15 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_boolean() {
+        let code = String::from("true;");
+        test_parse(&code);
+
+        let code = String::from("false;");
+        test_parse(&code);
+    }
+
+    #[test]
     fn test_parse_operation() {
         let code = String::from("1 + 2;");
         test_parse(&code);

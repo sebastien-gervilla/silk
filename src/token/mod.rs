@@ -31,15 +31,19 @@ pub enum TokenKind {
     ASSIGN,
 
     // Keywords
-    LET
+    LET,
+    TRUE,
+    FALSE,
 }
 
 pub type Keywords = HashMap<&'static str, TokenKind>;
 
 pub fn get_keywords() -> Keywords {
-    let mut keywords: Keywords = HashMap::with_capacity(1);
+    let mut keywords: Keywords = HashMap::with_capacity(3);
 
     keywords.insert("let", TokenKind::LET);
+    keywords.insert("true", TokenKind::TRUE);
+    keywords.insert("false", TokenKind::FALSE);
 
     return keywords
 }

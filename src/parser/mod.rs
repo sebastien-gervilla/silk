@@ -48,6 +48,8 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
     functions.insert(TokenKind::IDENTIFIER, parse_identifier);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
+    functions.insert(TokenKind::TRUE, parse_boolean_literal);
+    functions.insert(TokenKind::FALSE, parse_boolean_literal);
 
     functions.insert(TokenKind::NOT, parse_prefix_expression);
     functions.insert(TokenKind::MINUS, parse_prefix_expression);
@@ -272,6 +274,16 @@ fn parse_string_literal(parser: &mut Parser) -> Box<ast::Expression> {
         ast::Expression::StringLiteral(
             ast::StringLiteral {
                 value: parser.current_token.value.clone()
+            }
+        )
+    )
+}
+
+fn parse_boolean_literal(parser: &mut Parser) -> Box<ast::Expression> {
+    Box::new(
+        ast::Expression::BooleanLiteral(
+            ast::BooleanLiteral {
+                value: parser.current_token.value == "true"
             }
         )
     )

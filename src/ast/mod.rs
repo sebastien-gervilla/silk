@@ -31,6 +31,7 @@ pub enum Expression {
     Identifier(Identifier),
     NumberLiteral(NumberLiteral),
     StringLiteral(StringLiteral),
+    BooleanLiteral(BooleanLiteral),
     Prefix(PrefixExpression),
     Infix(InfixExpression),
 }
@@ -45,6 +46,10 @@ pub struct NumberLiteral {
 
 pub struct StringLiteral {
     pub value: String
+}
+
+pub struct BooleanLiteral {
+    pub value: bool
 }
 
 pub struct PrefixExpression {
