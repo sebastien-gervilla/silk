@@ -74,6 +74,9 @@ impl<'a> Lexer<'a> {
             b'/' => token.kind = TokenKind::SLASH,
             b'{' => token.kind = TokenKind::LBRACE,
             b'}' => token.kind = TokenKind::RBRACE,
+            b'(' => token.kind = TokenKind::LPAREN,
+            b')' => token.kind = TokenKind::RPAREN,
+            b',' => token.kind = TokenKind::COMMA,
             _ => {
                 if self.is_valid_character() {
                     token.value = self.read_identifier();

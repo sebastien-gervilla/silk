@@ -32,6 +32,7 @@ pub enum Expression {
     NumberLiteral(NumberLiteral),
     StringLiteral(StringLiteral),
     BooleanLiteral(BooleanLiteral),
+    Function(Function),
     Prefix(PrefixExpression),
     Infix(InfixExpression),
     Block(BlockExpression),
@@ -53,6 +54,17 @@ pub struct StringLiteral {
 
 pub struct BooleanLiteral {
     pub value: bool
+}
+
+pub struct Function {
+    pub node: Node,
+    pub identifier: Box<Expression>,
+    pub parameters: Vec<FunctionParameter>,
+    pub body: Box<Expression>,
+}
+
+pub struct FunctionParameter {
+    pub identifier: Box<Expression>,
 }
 
 pub struct PrefixExpression {

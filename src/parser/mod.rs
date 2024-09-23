@@ -43,13 +43,15 @@ type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
 type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
-    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(10);
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(11);
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
     functions.insert(TokenKind::TRUE, parse_boolean_literal);
     functions.insert(TokenKind::FALSE, parse_boolean_literal);
+
+    functions.insert(TokenKind::FUNCTION, parse_function);
 
     functions.insert(TokenKind::LBRACE, parse_block_expression);
     functions.insert(TokenKind::IF, parse_if_expression);
@@ -295,6 +297,63 @@ fn parse_boolean_literal(parser: &mut Parser) -> Box<ast::Expression> {
             }
         )
     )
+}
+
+fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.assert_peek(TokenKind::IDENTIFIER);
+
+    let identifier = parse_identifier(parser);
+
+    parser.assert_peek(TokenKind::LPAREN);
+
+    let parameters = parse_function_parameters(parser);
+
+    parser.assert_peek(TokenKind::RPAREN);
+    parser.assert_peek(TokenKind::LBRACE);
+    
+    let body = parse_block_expression(parser);
+
+    return Box::new(
+        ast::Expression::Function(
+            ast::Function {
+                node,
+                identifier,
+                parameters,
+                body
+            }
+        )
+    )
+}
+
+fn parse_function_parameters(parser: &mut Parser) -> Vec<ast::FunctionParameter> {
+    let mut parameters = Vec::<ast::FunctionParameter>::new();
+
+    if parser.is_peek_token(TokenKind::RPAREN) {
+        return parameters
+    }
+
+    parser.next_token();
+    parameters.push(
+        ast::FunctionParameter {
+            identifier: parse_identifier(parser)
+        }
+    );
+
+    while !parser.is_peek_token(TokenKind::RPAREN) {
+        parser.assert_peek(TokenKind::COMMA);
+        parser.next_token();
+        parameters.push(
+            ast::FunctionParameter {
+                identifier: parse_identifier(parser)
+            }
+        );
+    }
+
+    return parameters
 }
 
 fn parse_prefix_expression(parser: &mut Parser) -> Box<ast::Expression> {

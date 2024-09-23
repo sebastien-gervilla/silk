@@ -125,4 +125,21 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_function() {
+        let code = String::from("
+            fn myFunction() {
+                2 + 4;
+            };
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            fn myFunction(a, b, c) {
+                2 + 4;
+            };
+        ");
+        test_parse(&code);
+    }
+
 }
