@@ -3,8 +3,8 @@ pub mod tests;
 use std::collections::HashMap;
 
 use crate::{
-    ast, 
-    lexer::Lexer, 
+    ast,
+    lexer::Lexer,
     token::{Token, TokenKind}
 };
 
@@ -43,13 +43,16 @@ type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
 type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
-    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(5);
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(9);
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
     functions.insert(TokenKind::TRUE, parse_boolean_literal);
     functions.insert(TokenKind::FALSE, parse_boolean_literal);
+
+    functions.insert(TokenKind::LBRACE, parse_block_expression);
+    functions.insert(TokenKind::IF, parse_if_expression);
 
     functions.insert(TokenKind::NOT, parse_prefix_expression);
     functions.insert(TokenKind::MINUS, parse_prefix_expression);
@@ -126,6 +129,10 @@ impl<'a> Parser<'a> {
 
     pub fn is_peek_token(&self, token_kind: TokenKind) -> bool {
         self.peek_token.kind == token_kind
+    }
+
+    pub fn is_current_token(&self, token_kind: TokenKind) -> bool {
+        self.current_token.kind == token_kind
     }
 
     pub fn get_peek_precedence(&self) -> Precedence {
@@ -330,4 +337,65 @@ fn parse_infix_expression(parser: &mut Parser, left_expression: Box<ast::Express
             }
         )
     )
+}
+
+fn parse_block_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+
+    let mut statements = Vec::<ast::Statement>::new();
+    while !parser.is_current_token(TokenKind::RBRACE) {
+        statements.push(parse_statement(parser));
+        parser.next_token();
+    }
+
+    return Box::new(
+        ast::Expression::Block(
+            ast::BlockExpression {
+                node,
+                statements
+            }
+        )
+    )
+}
+
+fn parse_if_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+
+    let condition = parse_expression(parser, Precedence::LOWEST);
+
+    parser.assert_peek(TokenKind::LBRACE);
+
+    let consequence = parse_expression(parser, Precedence::LOWEST);
+
+    let mut if_expression = ast::IfExpression {
+        node,
+        condition,
+        consequence,
+        alternative: None
+    };
+
+    if !parser.is_peek_token(TokenKind::ELSE) {
+        return Box::new(ast::Expression::If(if_expression))
+    };
+
+    // Parsing else expression
+    parser.next_token();
+
+    if parser.is_peek_token(TokenKind::IF) {
+        parser.next_token();
+        if_expression.alternative = Some(parse_expression(parser, Precedence::LOWEST));
+        return Box::new(ast::Expression::If(if_expression))
+    }
+
+    parser.assert_peek(TokenKind::LBRACE);
+    if_expression.alternative = Some(parse_expression(parser, Precedence::LOWEST));
+    return Box::new(ast::Expression::If(if_expression))
 }

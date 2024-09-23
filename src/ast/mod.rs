@@ -34,6 +34,8 @@ pub enum Expression {
     BooleanLiteral(BooleanLiteral),
     Prefix(PrefixExpression),
     Infix(InfixExpression),
+    Block(BlockExpression),
+    If(IfExpression),
 }
 
 pub struct Identifier {
@@ -63,4 +65,16 @@ pub struct InfixExpression {
     pub operator: String,
     pub left_expression: Box<Expression>,
     pub right_expression: Box<Expression>,
+}
+
+pub struct BlockExpression {
+    pub node: Node,
+    pub statements: Vec<Statement>,
+}
+
+pub struct IfExpression {
+    pub node: Node,
+    pub condition: Box<Expression>,
+    pub consequence: Box<Expression>,
+    pub alternative: Option<Box<Expression>>,
 }

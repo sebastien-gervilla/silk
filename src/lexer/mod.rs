@@ -72,6 +72,8 @@ impl<'a> Lexer<'a> {
             b'-' => token.kind = TokenKind::MINUS,
             b'*' => token.kind = TokenKind::ASTERISK,
             b'/' => token.kind = TokenKind::SLASH,
+            b'{' => token.kind = TokenKind::LBRACE,
+            b'}' => token.kind = TokenKind::RBRACE,
             _ => {
                 if self.is_valid_character() {
                     token.value = self.read_identifier();
@@ -113,7 +115,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn skip_whitespace(&mut self) {
-        if self.character == b' ' 
+        while self.character == b' ' 
         || self.character == b'\n' 
         || self.character == b'\t' 
         || self.character == b'\r' {

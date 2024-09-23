@@ -26,6 +26,8 @@ pub enum TokenKind {
     // Delimiters
     EOF,
     SEMICOLON,
+	LBRACE,
+	RBRACE,
 
     // Operators
     ASSIGN,
@@ -34,16 +36,20 @@ pub enum TokenKind {
     LET,
     TRUE,
     FALSE,
+    IF,
+    ELSE,
 }
 
 pub type Keywords = HashMap<&'static str, TokenKind>;
 
 pub fn get_keywords() -> Keywords {
-    let mut keywords: Keywords = HashMap::with_capacity(3);
+    let mut keywords: Keywords = HashMap::with_capacity(5);
 
     keywords.insert("let", TokenKind::LET);
     keywords.insert("true", TokenKind::TRUE);
     keywords.insert("false", TokenKind::FALSE);
+    keywords.insert("if", TokenKind::IF);
+    keywords.insert("else", TokenKind::ELSE);
 
     return keywords
 }

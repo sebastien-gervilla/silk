@@ -85,4 +85,34 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_if_expression() {
+        let code = String::from("
+            if x == 1 {
+                2 + 4;
+            };
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            if x == 1 {
+                2 + 4;
+            } else {
+                6 + 12;
+            };
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            if x == 1 {
+                2 + 4;
+            } else if x > 2 {
+                6 + 12;
+            } else {
+                32 - 1;
+            };
+        ");
+        test_parse(&code);
+    }
+
 }
