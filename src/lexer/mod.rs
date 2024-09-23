@@ -41,20 +41,54 @@ impl<'a> Lexer<'a> {
             kind: TokenKind::UNKNOW,
             value: self.u8_to_string(self.character)
         };
-        
-        if self.character == b'=' {
-            token.kind = TokenKind::ASSIGN;
-        } else if self.character == b';' {
-            token.kind = TokenKind::SEMICOLON;
-        } else {
-            if self.is_valid_character() {
-                token.value = self.read_identifier();
-                token.kind = get_token_kind(&self.keywords, &token.value);
-            } else if self.is_digit() {
-                token.value = self.read_number();
-                token.kind = TokenKind::NUMBER;
-            } else if self.character == 0 {
-                token.kind = TokenKind::EOF;
+
+        match self.character {
+            b'=' => {
+                if self.get_next_character() == b'=' {
+                    self.next_character();
+                    token.kind = TokenKind::EQUALS;
+                    token.value = String::from("==");
+                } else {
+                    token.kind = TokenKind::ASSIGN;
+                }
+            },
+            b';' => token.kind = TokenKind::SEMICOLON,
+            b'"' => {
+                token.kind = TokenKind::STRING;
+                token.value = self.read_string();
+            },
+            b'!' => {
+                if self.get_next_character() == b'=' {
+                    self.next_character();
+                    token.kind = TokenKind::NOT_EQUALS;
+                    token.value = String::from("!=");
+                } else {
+                    token.kind = TokenKind::NOT;
+                }
+            },
+            b'>' => token.kind = TokenKind::GREATER_THAN,
+            b'<' => token.kind = TokenKind::LESS_THAN,
+            b'+' => token.kind = TokenKind::PLUS,
+            b'-' => token.kind = TokenKind::MINUS,
+            b'*' => token.kind = TokenKind::ASTERISK,
+            b'/' => token.kind = TokenKind::SLASH,
+            b'{' => token.kind = TokenKind::LBRACE,
+            b'}' => token.kind = TokenKind::RBRACE,
+            b'(' => token.kind = TokenKind::LPAREN,
+            b')' => token.kind = TokenKind::RPAREN,
+            b',' => token.kind = TokenKind::COMMA,
+            _ => {
+                if self.is_valid_character() {
+                    token.value = self.read_identifier();
+                    token.kind = get_token_kind(&self.keywords, &token.value);
+                    return token
+                } else if self.is_digit() {
+                    token.value = self.read_number();
+                    token.kind = TokenKind::NUMBER;
+                    return token
+                } else if self.character == 0 {
+                    token.kind = TokenKind::EOF;
+                }
             }
         }
 
@@ -65,6 +99,7 @@ impl<'a> Lexer<'a> {
 
     fn next_character(&mut self) {
         if self.peek_position >= self.code.len() {
+            self.position = self.code.len();
             self.character = 0;
             return;
         }
@@ -74,8 +109,16 @@ impl<'a> Lexer<'a> {
         self.peek_position += 1;
     }
 
+    fn get_next_character(&mut self) -> u8 {
+        if self.peek_position >= self.code.len() {
+            return 0
+        }
+
+        return self.code[self.peek_position]
+    }
+
     fn skip_whitespace(&mut self) {
-        if self.character == b' ' 
+        while self.character == b' ' 
         || self.character == b'\n' 
         || self.character == b'\t' 
         || self.character == b'\r' {
@@ -99,7 +142,7 @@ impl<'a> Lexer<'a> {
             self.next_character();
         }
 
-        return match String::from_utf8(self.code[initial_position..self.position + 1].to_vec()) {
+        return match String::from_utf8(self.code[initial_position..self.position].to_vec()) {
             Ok(string) => string,
             Err(error) => panic!("{error}")
         };
@@ -111,7 +154,21 @@ impl<'a> Lexer<'a> {
             self.next_character();
         }
 
-        return match String::from_utf8(self.code[initial_position..self.position + 1].to_vec()) {
+        return match String::from_utf8(self.code[initial_position..self.position].to_vec()) {
+            Ok(string) => string,
+            Err(error) => panic!("{error}")
+        };
+    }
+
+    fn read_string(&mut self) -> String {
+        let initial_position = self.position + 1;
+
+        self.next_character();
+        while self.character != b'"' {
+            self.next_character();
+        }
+    
+        return match String::from_utf8(self.code[initial_position..self.position].to_vec()) {
             Ok(string) => string,
             Err(error) => panic!("{error}")
         };
