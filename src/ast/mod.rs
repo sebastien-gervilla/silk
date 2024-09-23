@@ -36,6 +36,7 @@ pub enum Expression {
     Infix(InfixExpression),
     Block(BlockExpression),
     If(IfExpression),
+    While(WhileExpression),
 }
 
 pub struct Identifier {
@@ -77,4 +78,10 @@ pub struct IfExpression {
     pub condition: Box<Expression>,
     pub consequence: Box<Expression>,
     pub alternative: Option<Box<Expression>>,
+}
+
+pub struct WhileExpression {
+    pub node: Node,
+    pub condition: Box<Expression>,
+    pub iteration: Box<Expression>,
 }

@@ -115,4 +115,14 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_while_expression() {
+        let code = String::from("
+            while x > 1 {
+                2 + 4;
+            };
+        ");
+        test_parse(&code);
+    }
+
 }

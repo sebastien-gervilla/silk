@@ -43,7 +43,7 @@ type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
 type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
-    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(9);
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(10);
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
@@ -53,6 +53,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 
     functions.insert(TokenKind::LBRACE, parse_block_expression);
     functions.insert(TokenKind::IF, parse_if_expression);
+    functions.insert(TokenKind::WHILE, parse_while_expression);
 
     functions.insert(TokenKind::NOT, parse_prefix_expression);
     functions.insert(TokenKind::MINUS, parse_prefix_expression);
@@ -398,4 +399,28 @@ fn parse_if_expression(parser: &mut Parser) -> Box<ast::Expression> {
     parser.assert_peek(TokenKind::LBRACE);
     if_expression.alternative = Some(parse_expression(parser, Precedence::LOWEST));
     return Box::new(ast::Expression::If(if_expression))
+}
+
+fn parse_while_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+    let condition = parse_expression(parser, Precedence::LOWEST);
+
+
+    parser.assert_peek(TokenKind::LBRACE);
+
+    let iteration = parse_expression(parser, Precedence::LOWEST);
+
+    return Box::new(
+        ast::Expression::While(
+            ast::WhileExpression {
+                node,
+                condition,
+                iteration
+            }
+        )
+    )
 }
