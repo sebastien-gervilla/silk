@@ -17,6 +17,7 @@ pub enum Precedence {
 	SUM,            // +, -
 	PRODUCT,        // *, /
 	PREFIX,         // -expression, !expression
+	CALL,         // identifier(expression, expression)
 }
 
 type Precedences = HashMap<TokenKind, Precedence>;
@@ -32,6 +33,7 @@ fn get_precedences() -> Precedences {
     precedences.insert(TokenKind::MINUS, Precedence::SUM);
     precedences.insert(TokenKind::ASTERISK, Precedence::PRODUCT);
     precedences.insert(TokenKind::SLASH, Precedence::PRODUCT);
+    precedences.insert(TokenKind::LPAREN, Precedence::CALL);
 
     precedences
 }
@@ -64,7 +66,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(8);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(9);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
@@ -73,6 +75,8 @@ fn get_infix_parsing_functions() -> InfixParsingFunctions {
     functions.insert(TokenKind::NOT_EQUALS, parse_infix_expression);
     functions.insert(TokenKind::GREATER_THAN, parse_infix_expression);
     functions.insert(TokenKind::LESS_THAN, parse_infix_expression);
+
+    functions.insert(TokenKind::LPAREN, parse_call_expression);
 
     return functions
 }
@@ -482,4 +486,43 @@ fn parse_while_expression(parser: &mut Parser) -> Box<ast::Expression> {
             }
         )
     )
+}
+
+fn parse_call_expression(parser: &mut Parser, identifier: Box<ast::Expression>) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    let arguments = parse_call_arguments(parser);
+
+    parser.assert_peek(TokenKind::RPAREN);
+
+    return Box::new(
+        ast::Expression::Call(
+            ast::CallExpression {
+                node,
+                identifier,
+                arguments,
+            }
+        )
+    )
+}
+
+fn parse_call_arguments(parser: &mut Parser) -> Vec<Box<ast::Expression>> {
+    let mut arguments = Vec::<Box<ast::Expression>>::new();
+
+    if parser.is_peek_token(TokenKind::RPAREN) {
+        return arguments
+    }
+
+    parser.next_token();
+    arguments.push(parse_expression(parser, Precedence::LOWEST));
+
+    while !parser.is_peek_token(TokenKind::RPAREN) {
+        parser.assert_peek(TokenKind::COMMA);
+        parser.next_token();
+        arguments.push(parse_expression(parser, Precedence::LOWEST));
+    }
+    
+    return arguments
 }

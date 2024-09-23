@@ -38,6 +38,7 @@ pub enum Expression {
     Block(BlockExpression),
     If(IfExpression),
     While(WhileExpression),
+    Call(CallExpression),
 }
 
 pub struct Identifier {
@@ -96,4 +97,10 @@ pub struct WhileExpression {
     pub node: Node,
     pub condition: Box<Expression>,
     pub iteration: Box<Expression>,
+}
+
+pub struct CallExpression {
+    pub node: Node,
+    pub identifier: Box<Expression>,
+    pub arguments: Vec<Box<Expression>>,
 }

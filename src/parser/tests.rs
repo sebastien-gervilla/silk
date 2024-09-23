@@ -142,4 +142,22 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_call_expression() {
+        let code = String::from("
+            myFunction();
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            myFunction(a, b);
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            myFunction(otherFunc(), 2 + 2);
+        ");
+        test_parse(&code);
+    }
+
 }
