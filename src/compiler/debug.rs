@@ -11,7 +11,7 @@ pub fn disassemble_chunk(chunk: &Chunk, name: &str) {
     }
 }
 
-fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
+pub fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
     print!("> OFFSET {} - ", offset);
     if offset > 0 && chunk.lines[offset] == chunk.lines[offset - 1] {
         print!(" | ");
@@ -22,16 +22,21 @@ fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
     let instruction = OperationCode::from_u8(chunk.code[offset]);
 
     match instruction {
-        OperationCode::RETURN => return handle_return_instruction(offset),
         OperationCode::CONSTANT => return handle_constant_instruction(chunk, offset),
+        OperationCode::ADD => return handle_simple_instruction("ADD", offset),
+        OperationCode::SUBSTRACT => return handle_simple_instruction("SUBSTRACT", offset),
+        OperationCode::MULTIPLY => return handle_simple_instruction("MULTIPLY", offset),
+        OperationCode::DIVIDE => return handle_simple_instruction("DIVIDE", offset),
+        OperationCode::NEGATE => return handle_simple_instruction("NEGATE", offset),
+        OperationCode::RETURN => return handle_simple_instruction("RETURN", offset),
         OperationCode::UNKNOW => println!("UNKNOW {:?}", instruction),
     }
 
     return offset + 1
 }
 
-fn handle_return_instruction(offset: usize) -> usize {
-    println!("RETURN");
+fn handle_simple_instruction(name: &str, offset: usize) -> usize {
+    println!("{name}");
     return offset + 1
 }
 
