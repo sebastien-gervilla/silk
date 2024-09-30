@@ -61,6 +61,9 @@ impl<'a> Compiler<'a> {
 
     fn compile_infix_expression(&mut self, expression: &ast::InfixExpression) {
 
+        self.compile_expression(&expression.left_expression);
+        self.compile_expression(&expression.right_expression);
+
         match expression.operator.as_str() {
             "+" => self.chunk.add_operation(OperationCode::ADD, 1),
             "-" => self.chunk.add_operation(OperationCode::SUBSTRACT, 1),
@@ -68,9 +71,6 @@ impl<'a> Compiler<'a> {
             "/" => self.chunk.add_operation(OperationCode::DIVIDE, 1),
             _ => todo!(),
         }
-
-        self.compile_expression(&expression.left_expression);
-        self.compile_expression(&expression.right_expression);
     }
 
 }
