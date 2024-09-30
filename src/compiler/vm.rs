@@ -1,4 +1,4 @@
-use super::{bytecode::{Chunk, OperationCode}, debug::disassemble_instruction, value::Value};
+use super::{bytecode::{Chunk, OperationCode}, debug::disassemble_instruction, value::Value, Compiler};
 
 const STACK_SIZE: usize = 256;
 
@@ -11,14 +11,14 @@ pub enum InterpretationResult {
 }
 
 pub struct VM<'a> {
-    chunk: &'a Chunk,
+    chunk: &'a mut Chunk,
     ip: usize, // TODO: For the moment we use array indexing, but we may use pointer dereferencing instead of performance
     stack: [Value; STACK_SIZE],
     stack_top: usize,
 }
 
 impl<'a> VM<'a> {
-    pub fn new(chunk: &'a Chunk) -> Self {
+    pub fn new(chunk: &'a mut Chunk) -> Self {
         Self {
             chunk,
             ip: 0,
@@ -45,11 +45,14 @@ impl<'a> VM<'a> {
         self.stack[self.stack_top]
     }
 
-    pub fn interpret(&mut self) -> InterpretationResult {
+    pub fn interpret(&mut self, source: &str) -> InterpretationResult {
+        let mut compiler = Compiler::new(&mut self.chunk);
+        compiler.compile(source);
+
         self.run()
     }
 
-    fn run(&mut self) -> InterpretationResult {
+    pub fn run(&mut self) -> InterpretationResult {
         loop {
             #[cfg(feature = "debug_trace_execution")]
             {
@@ -96,7 +99,8 @@ impl<'a> VM<'a> {
     }
 
     fn read_constant(&mut self) -> f64 {
-        self.chunk.contants[self.read_byte() as usize]
+        let byte = self.read_byte();
+        self.chunk.contants[byte as usize]
     }
 
 }

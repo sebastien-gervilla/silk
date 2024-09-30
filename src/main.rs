@@ -1,20 +1,14 @@
 use silk::{
-    lexer::Lexer, 
-    parser::{
-        parse_file, 
-        Parser
-    }, 
-    token::TokenKind
+    compiler::{bytecode::Chunk, vm::VM}, lexer::Lexer, token::TokenKind
 };
 
 fn main() {
 
-    let code = "let x = 3;".to_string();
+    let code = "3 + 3;";
 
-    let mut lexer = Lexer::new(&code);
-    let mut parser = Parser::new(&mut lexer);
-
-    parse_file(&mut parser);
+    let mut chunk = Chunk::new();
+    let mut vm = VM::new(&mut chunk);
+    vm.interpret(code);
 }
 
 #[allow(dead_code)]
