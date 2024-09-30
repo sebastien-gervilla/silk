@@ -22,7 +22,10 @@ impl OperationCode {
             5 => OperationCode::DIVIDE,
             6 => OperationCode::NEGATE,
             7 => OperationCode::RETURN,
-            _ => OperationCode::UNKNOW,
+            unknown => {
+                println!("Unknown instruction '{}'", unknown);
+                OperationCode::UNKNOW
+            },
         }
     }
 }
@@ -42,8 +45,19 @@ impl Chunk {
         }
     }
 
+    pub fn add_constant(&mut self, constant: f64, line: usize) {
+        self.add_operation(OperationCode::CONSTANT, line);
+        self.contants.push(constant);
+        self.add_instruction((self.contants.len() - 1) as u8, line);
+    }
+
     pub fn add_instruction(&mut self, instruction: u8, line: usize) {
-        self.code.push(instruction);
+        self.code.push(instruction as u8);
+        self.lines.push(line);
+    }
+
+    pub fn add_operation(&mut self, operation: OperationCode, line: usize) {
+        self.code.push(operation as u8);
         self.lines.push(line);
     }
 }
