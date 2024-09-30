@@ -17,7 +17,7 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(code: &'a String) -> Self {
+    pub fn new(code: &'a str) -> Self {
         let mut lexer = Self {
             code: code.as_bytes(),
             character: 0,
