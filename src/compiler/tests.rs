@@ -8,7 +8,8 @@ mod tests {
         vm::VM
     };
 
-    fn test_compilation() {
+    #[test]
+    fn test_bytecode() {
         
         let mut chunk = Chunk::new();
 
@@ -38,8 +39,27 @@ mod tests {
         vm.run();
     }
 
-    #[test]
-    fn test_bytecode() {
-        test_compilation();
+    // Compilation tests
+
+    fn test_compilation(source: &str) {
+        let mut chunk = Chunk::new();
+        let mut vm = VM::new(&mut chunk);
+        vm.interpret(source);
     }
+
+    #[test]
+    fn test_compile_operations() {
+        println!("\n======== Testing addition ========\n");
+        test_compilation("3 + 22;");
+
+        println!("\n======== Testing substraction ========\n");
+        test_compilation("2 - 3;");
+
+        println!("\n======== Testing multiplication ========\n");
+        test_compilation("6 * 6;");
+
+        println!("\n======== Testing division ========\n");
+        test_compilation("10 / 2;");
+    }
+
 }
