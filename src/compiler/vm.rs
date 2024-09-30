@@ -84,6 +84,17 @@ impl<'a> VM<'a> {
                 },
                 OperationCode::UNKNOW => panic!("Unknow instruction")
             };
+
+            if self.ip >= self.chunk.code.len() {
+                #[cfg(feature = "debug_trace_execution")] {
+                    println!("");
+                    for index in 0..self.stack_top {
+                        println!(">> END STACK: [ {} ]", self.stack[index]);
+                    }
+                }
+
+                return InterpretationResult::OK
+            }
         }
     }
 
