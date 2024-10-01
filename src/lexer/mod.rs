@@ -124,16 +124,31 @@ impl<'a> Lexer<'a> {
     }
 
     fn skip_whitespace(&mut self) {
-        while self.character == b' ' 
-        || self.character == b'\n' 
-        || self.character == b'\t' 
-        || self.character == b'\r' {
-            if self.character == b'\n' {
-                self.line += 1;
-                self.column = 0;
-            }
+        loop {
+            match self.character {
+                b' ' | b'\t' | b'\r' => self.next_character(),
+                b'\n' => {
+                    self.line += 1;
+                    self.column = 0;
+                    self.next_character();
+                },
+                b'/' => {
+                    if self.get_next_character() != b'/' {
+                        return;
+                    }
 
-            self.next_character();
+                    while self.character != b'\n' {
+                        self.next_character();
+
+                        if self.character == 0 {
+                            return;
+                        }
+                    }
+
+                    self.next_character();
+                },
+                _ => return
+            }
         }
     }
 
