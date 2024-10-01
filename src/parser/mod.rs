@@ -9,7 +9,7 @@ use crate::{
 };
 
 // Precedences
-#[derive(Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Precedence {
     LOWEST,
 	EQUALITY,       // ==, !=
@@ -66,11 +66,12 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(9);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(10);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
     functions.insert(TokenKind::ASTERISK, parse_infix_expression);
+    functions.insert(TokenKind::SLASH, parse_infix_expression);
     functions.insert(TokenKind::EQUALS, parse_infix_expression);
     functions.insert(TokenKind::NOT_EQUALS, parse_infix_expression);
     functions.insert(TokenKind::GREATER_THAN, parse_infix_expression);
