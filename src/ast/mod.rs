@@ -42,18 +42,22 @@ pub enum Expression {
 }
 
 pub struct Identifier {
+    pub node: Node,
     pub value: String
 }
 
 pub struct NumberLiteral {
-    pub value: isize
+    pub node: Node,
+    pub value: isize,
 }
 
 pub struct StringLiteral {
+    pub node: Node,
     pub value: String
 }
 
 pub struct BooleanLiteral {
+    pub node: Node,
     pub value: bool
 }
 
