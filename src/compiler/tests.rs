@@ -62,4 +62,10 @@ mod tests {
         test_compilation("10 / 2;");
     }
 
+    #[test]
+    fn test_compile_negation() {
+        println!("\n======== Testing negation ========\n");
+        test_compilation("-22;");
+    }
+
 }

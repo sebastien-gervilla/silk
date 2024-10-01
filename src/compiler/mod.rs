@@ -55,6 +55,16 @@ impl<'a> Compiler<'a> {
                 self.chunk.add_constant(literal.value as f64, 1);
             },
             ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
+            ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
+            _ => todo!()
+        }
+    }
+
+    fn compile_prefix_expression(&mut self, expression: &ast::PrefixExpression) {
+        self.compile_expression(&expression.expression);
+
+        match expression.operator.as_str() {
+            "-" => self.chunk.add_operation(OperationCode::NEGATE, 1),
             _ => todo!()
         }
     }
