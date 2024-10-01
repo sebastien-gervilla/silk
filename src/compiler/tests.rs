@@ -68,4 +68,13 @@ mod tests {
         test_compilation("-22;");
     }
 
+    #[test]
+    fn test_compile_multiple_lines() {
+        println!("\n======== Testing multiple lines ========\n");
+        test_compilation("
+            2 + 2;
+            2 / 2;
+        ");
+    }
+
 }
