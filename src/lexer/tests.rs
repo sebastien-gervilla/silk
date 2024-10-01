@@ -15,6 +15,16 @@ mod tests {
     }
 
     #[test]
+    fn test_read_comments() {
+        let code = "// Comment \n\n //Other comment \n ".to_string();
+        let expected_tokens = vec![
+            TokenKind::LET,
+        ];
+
+        test_lex(&code, &expected_tokens);
+    }
+
+    #[test]
     fn test_read_numbers() {
         let code = "3 45 0".to_string();
         let expected_tokens = vec![

@@ -11,6 +11,8 @@ use crate::token::{
 pub struct Lexer<'a> {
     code: &'a[u8],
     character: u8,
+    line: usize,
+    column: usize,
     position: usize,
     peek_position: usize,
     keywords: Keywords
@@ -21,6 +23,8 @@ impl<'a> Lexer<'a> {
         let mut lexer = Self {
             code: code.as_bytes(),
             character: 0,
+            line: 0,
+            column: 0,
             position: 0,
             peek_position: 0,
             keywords: get_keywords()
@@ -39,7 +43,9 @@ impl<'a> Lexer<'a> {
 
         let mut token = Token {
             kind: TokenKind::UNKNOW,
-            value: self.u8_to_string(self.character)
+            value: self.u8_to_string(self.character),
+            line: self.line,
+            column: self.column
         };
 
         match self.character {
@@ -118,11 +124,31 @@ impl<'a> Lexer<'a> {
     }
 
     fn skip_whitespace(&mut self) {
-        while self.character == b' ' 
-        || self.character == b'\n' 
-        || self.character == b'\t' 
-        || self.character == b'\r' {
-            self.next_character();
+        loop {
+            match self.character {
+                b' ' | b'\t' | b'\r' => self.next_character(),
+                b'\n' => {
+                    self.line += 1;
+                    self.column = 0;
+                    self.next_character();
+                },
+                b'/' => {
+                    if self.get_next_character() != b'/' {
+                        return;
+                    }
+
+                    while self.character != b'\n' {
+                        self.next_character();
+
+                        if self.character == 0 {
+                            return;
+                        }
+                    }
+
+                    self.next_character();
+                },
+                _ => return
+            }
         }
     }
 

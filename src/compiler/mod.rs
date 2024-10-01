@@ -52,7 +52,7 @@ impl<'a> Compiler<'a> {
     fn compile_expression(&mut self, expression: &ast::Expression) {
         match expression {
             ast::Expression::NumberLiteral(literal) => {
-                self.chunk.add_constant(literal.value as f64, 1);
+                self.chunk.add_constant(literal.value as f64, literal.node.token.line);
             },
             ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
@@ -64,7 +64,7 @@ impl<'a> Compiler<'a> {
         self.compile_expression(&expression.expression);
 
         match expression.operator.as_str() {
-            "-" => self.chunk.add_operation(OperationCode::NEGATE, 1),
+            "-" => self.chunk.add_operation(OperationCode::NEGATE, expression.node.token.line),
             _ => todo!()
         }
     }
@@ -75,10 +75,10 @@ impl<'a> Compiler<'a> {
         self.compile_expression(&expression.right_expression);
 
         match expression.operator.as_str() {
-            "+" => self.chunk.add_operation(OperationCode::ADD, 1),
-            "-" => self.chunk.add_operation(OperationCode::SUBSTRACT, 1),
-            "*" => self.chunk.add_operation(OperationCode::MULTIPLY, 1),
-            "/" => self.chunk.add_operation(OperationCode::DIVIDE, 1),
+            "+" => self.chunk.add_operation(OperationCode::ADD, expression.node.token.line),
+            "-" => self.chunk.add_operation(OperationCode::SUBSTRACT, expression.node.token.line),
+            "*" => self.chunk.add_operation(OperationCode::MULTIPLY, expression.node.token.line),
+            "/" => self.chunk.add_operation(OperationCode::DIVIDE, expression.node.token.line),
             _ => todo!(),
         }
     }

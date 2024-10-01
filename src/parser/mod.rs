@@ -260,6 +260,9 @@ fn parse_identifier(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::Identifier(
             ast::Identifier {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
                 value: parser.current_token.value.clone()
             }
         )
@@ -278,6 +281,9 @@ fn parse_number_literal(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::NumberLiteral(
             ast::NumberLiteral {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
                 value
             }
         )
@@ -288,6 +294,9 @@ fn parse_string_literal(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::StringLiteral(
             ast::StringLiteral {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
                 value: parser.current_token.value.clone()
             }
         )
@@ -298,6 +307,9 @@ fn parse_boolean_literal(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::BooleanLiteral(
             ast::BooleanLiteral {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
                 value: parser.current_token.value == "true"
             }
         )
