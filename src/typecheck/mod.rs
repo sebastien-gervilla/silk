@@ -1,21 +1,47 @@
 pub mod tests;
 pub mod types;
 
-use types::Type;
+use types::{Type, TypeEnvironment};
 
 use crate::ast;
 
+struct TypeChecker {
+    
+}
+
 pub fn check_program(file: &ast::File) {
+
+    let mut environment = TypeEnvironment::new();
+
     for statement in &file.statements {
-        check_statemenet(&statement);
+        check_statemenet(&statement, &mut environment);
     }
 }
 
-fn check_statemenet(statement: &ast::Statement) {
+fn check_statemenet(statement: &ast::Statement, environment: &mut TypeEnvironment) {
     match statement {
+        ast::Statement::Let(let_statement) => check_let_statement(let_statement, environment),
         ast::Statement::Expression(expression) => check_expression(&expression.expression),
         _ => todo!(),
     }
+}
+
+fn check_let_statement(statement: &ast::LetStatement, environment: &mut TypeEnvironment) {
+
+    let variable_type = match &statement.expression {
+        Some(expression) => synthesize_expression(expression),
+        None => {
+            todo!("Requires typing annotation.")
+        },
+    };
+
+    // TODO: Force identifier
+    let variable_name = match statement.identifier.as_ref() {
+        ast::Expression::Identifier(identifier) => identifier.value.clone(),
+        _ => todo!("Identifier requires naming."),
+    };
+
+    environment.insert(variable_name, variable_type);
 }
 
 fn check_expression(expression: &ast::Expression) {
