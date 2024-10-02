@@ -86,7 +86,7 @@ pub struct Parser<'a> {
     lexer: &'a mut Lexer<'a>,
     current_token: Token,
     peek_token: Token,
-    errors: Vec<String>,
+    pub errors: Vec<String>,
     prefix_parsing_functions: PrefixParsingFunctions,
     infix_parsing_functions: InfixParsingFunctions,
     precedences: Precedences
