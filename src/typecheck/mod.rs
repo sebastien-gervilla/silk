@@ -35,13 +35,7 @@ fn check_let_statement(statement: &ast::LetStatement, environment: &mut TypeEnvi
         },
     };
 
-    // TODO: Force identifier
-    let variable_name = match statement.identifier.as_ref() {
-        ast::Expression::Identifier(identifier) => identifier.value.clone(),
-        _ => todo!("Identifier requires naming."),
-    };
-
-    environment.insert(variable_name, variable_type);
+    environment.insert(statement.identifier.value.clone(), variable_type);
 }
 
 fn check_expression(expression: &ast::Expression) {
