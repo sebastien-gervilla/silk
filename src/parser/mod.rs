@@ -9,7 +9,7 @@ use crate::{
 };
 
 // Precedences
-#[derive(Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Precedence {
     LOWEST,
 	EQUALITY,       // ==, !=
@@ -47,7 +47,7 @@ type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
     let mut functions: PrefixParsingFunctions = HashMap::with_capacity(11);
 
-    functions.insert(TokenKind::IDENTIFIER, parse_identifier);
+    functions.insert(TokenKind::IDENTIFIER, parse_identifier_expression);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
     functions.insert(TokenKind::TRUE, parse_boolean_literal);
@@ -66,11 +66,12 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(9);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(10);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
     functions.insert(TokenKind::ASTERISK, parse_infix_expression);
+    functions.insert(TokenKind::SLASH, parse_infix_expression);
     functions.insert(TokenKind::EQUALS, parse_infix_expression);
     functions.insert(TokenKind::NOT_EQUALS, parse_infix_expression);
     functions.insert(TokenKind::GREATER_THAN, parse_infix_expression);
@@ -85,7 +86,7 @@ pub struct Parser<'a> {
     lexer: &'a mut Lexer<'a>,
     current_token: Token,
     peek_token: Token,
-    errors: Vec<String>,
+    pub errors: Vec<String>,
     prefix_parsing_functions: PrefixParsingFunctions,
     infix_parsing_functions: InfixParsingFunctions,
     precedences: Precedences
@@ -255,14 +256,21 @@ fn parse_expression(parser: &mut Parser, precedence: Precedence) -> Box<ast::Exp
     return left_expression
 }
 
-fn parse_identifier(parser: &mut Parser) -> Box<ast::Expression> {
+fn parse_identifier_expression(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::Identifier(
-            ast::Identifier {
-                value: parser.current_token.value.clone()
-            }
+            parse_identifier(parser)
         )
     )
+}
+
+fn parse_identifier(parser: &mut Parser) -> ast::Identifier {
+    ast::Identifier {
+        node: ast::Node {
+            token: parser.get_current_token(),
+        },
+        value: parser.current_token.value.clone()
+    }
 }
 
 fn parse_number_literal(parser: &mut Parser) -> Box<ast::Expression> {
@@ -277,6 +285,9 @@ fn parse_number_literal(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::NumberLiteral(
             ast::NumberLiteral {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
                 value
             }
         )
@@ -287,6 +298,9 @@ fn parse_string_literal(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::StringLiteral(
             ast::StringLiteral {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
                 value: parser.current_token.value.clone()
             }
         )
@@ -297,6 +311,9 @@ fn parse_boolean_literal(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::BooleanLiteral(
             ast::BooleanLiteral {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
                 value: parser.current_token.value == "true"
             }
         )

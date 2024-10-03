@@ -17,7 +17,7 @@ pub enum Statement {
 
 pub struct LetStatement {
     pub node: Node,
-    pub identifier: Box<Expression>,
+    pub identifier: Identifier,
     pub expression: Option<Box<Expression>>,
 }
 
@@ -42,30 +42,34 @@ pub enum Expression {
 }
 
 pub struct Identifier {
+    pub node: Node,
     pub value: String
 }
 
 pub struct NumberLiteral {
-    pub value: isize
+    pub node: Node,
+    pub value: isize,
 }
 
 pub struct StringLiteral {
+    pub node: Node,
     pub value: String
 }
 
 pub struct BooleanLiteral {
+    pub node: Node,
     pub value: bool
 }
 
 pub struct Function {
     pub node: Node,
-    pub identifier: Box<Expression>,
+    pub identifier: Identifier,
     pub parameters: Vec<FunctionParameter>,
     pub body: Box<Expression>,
 }
 
 pub struct FunctionParameter {
-    pub identifier: Box<Expression>,
+    pub identifier: Identifier,
 }
 
 pub struct PrefixExpression {
