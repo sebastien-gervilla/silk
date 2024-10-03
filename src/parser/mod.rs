@@ -55,6 +55,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 
     functions.insert(TokenKind::FUNCTION, parse_function);
 
+    functions.insert(TokenKind::LPAREN, parse_grouped_expression);
     functions.insert(TokenKind::LBRACE, parse_block_expression);
     functions.insert(TokenKind::IF, parse_if_expression);
     functions.insert(TokenKind::WHILE, parse_while_expression);
@@ -418,6 +419,16 @@ fn parse_infix_expression(parser: &mut Parser, left_expression: Box<ast::Express
             }
         )
     )
+}
+
+fn parse_grouped_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    parser.next_token();
+
+    let expression = parse_expression(parser, Precedence::LOWEST);
+
+    parser.assert_peek(TokenKind::RPAREN);
+
+    return expression
 }
 
 fn parse_block_expression(parser: &mut Parser) -> Box<ast::Expression> {

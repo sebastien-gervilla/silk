@@ -77,6 +77,14 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_group_expression() {
+        let code = String::from("
+            ((2 + 2) * 4) + 6;
+        ");
+        test_parse(&code);
+    }
+
+    #[test]
     fn test_parse_prefix() {
         let code = String::from("-2;");
         test_parse(&code);
