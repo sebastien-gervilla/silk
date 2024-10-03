@@ -47,7 +47,7 @@ type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
     let mut functions: PrefixParsingFunctions = HashMap::with_capacity(11);
 
-    functions.insert(TokenKind::IDENTIFIER, parse_identifier);
+    functions.insert(TokenKind::IDENTIFIER, parse_identifier_expression);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
     functions.insert(TokenKind::TRUE, parse_boolean_literal);
@@ -86,7 +86,7 @@ pub struct Parser<'a> {
     lexer: &'a mut Lexer<'a>,
     current_token: Token,
     peek_token: Token,
-    errors: Vec<String>,
+    pub errors: Vec<String>,
     prefix_parsing_functions: PrefixParsingFunctions,
     infix_parsing_functions: InfixParsingFunctions,
     precedences: Precedences
@@ -256,17 +256,21 @@ fn parse_expression(parser: &mut Parser, precedence: Precedence) -> Box<ast::Exp
     return left_expression
 }
 
-fn parse_identifier(parser: &mut Parser) -> Box<ast::Expression> {
+fn parse_identifier_expression(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::Identifier(
-            ast::Identifier {
-                node: ast::Node {
-                    token: parser.get_current_token(),
-                },
-                value: parser.current_token.value.clone()
-            }
+            parse_identifier(parser)
         )
     )
+}
+
+fn parse_identifier(parser: &mut Parser) -> ast::Identifier {
+    ast::Identifier {
+        node: ast::Node {
+            token: parser.get_current_token(),
+        },
+        value: parser.current_token.value.clone()
+    }
 }
 
 fn parse_number_literal(parser: &mut Parser) -> Box<ast::Expression> {
