@@ -54,6 +54,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
     functions.insert(TokenKind::FALSE, parse_boolean_literal);
 
     functions.insert(TokenKind::FUNCTION, parse_function);
+    functions.insert(TokenKind::RETURN, parse_return_expression);
 
     functions.insert(TokenKind::LPAREN, parse_grouped_expression);
     functions.insert(TokenKind::LBRACE, parse_block_expression);
@@ -346,6 +347,23 @@ fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
                 identifier,
                 parameters,
                 body
+            }
+        )
+    )
+}
+
+fn parse_return_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+
+    return Box::new(
+        ast::Expression::Return(
+            ast::ReturnExpression {
+                node,
+                expression: parse_expression(parser, Precedence::LOWEST),
             }
         )
     )

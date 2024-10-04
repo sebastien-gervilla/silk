@@ -168,4 +168,17 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_return_expression() {
+        let code = String::from("
+            return 2 + 2;
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            return myFunction();
+        ");
+        test_parse(&code);
+    }
+
 }
