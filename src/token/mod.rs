@@ -43,12 +43,13 @@ pub enum TokenKind {
     ELSE,
     WHILE,
     FUNCTION,
+    RETURN,
 }
 
 pub type Keywords = HashMap<&'static str, TokenKind>;
 
 pub fn get_keywords() -> Keywords {
-    let mut keywords: Keywords = HashMap::with_capacity(7);
+    let mut keywords: Keywords = HashMap::with_capacity(10);
 
     keywords.insert("let", TokenKind::LET);
     keywords.insert("true", TokenKind::TRUE);
@@ -57,6 +58,8 @@ pub fn get_keywords() -> Keywords {
     keywords.insert("else", TokenKind::ELSE);
     keywords.insert("while", TokenKind::WHILE);
     keywords.insert("fn", TokenKind::FUNCTION);
+    keywords.insert("return", TokenKind::RETURN);
+
 
     return keywords
 }

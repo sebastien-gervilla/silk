@@ -39,6 +39,7 @@ pub enum Expression {
     If(IfExpression),
     While(WhileExpression),
     Call(CallExpression),
+    Return(ReturnExpression),
 }
 
 pub struct Identifier {
@@ -107,4 +108,9 @@ pub struct CallExpression {
     pub node: Node,
     pub identifier: Box<Expression>,
     pub arguments: Vec<Box<Expression>>,
+}
+
+pub struct ReturnExpression {
+    pub node: Node,
+    pub expression: Box<Expression>,
 }
