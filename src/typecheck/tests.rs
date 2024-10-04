@@ -57,9 +57,11 @@ mod tests {
 
     #[test]
     fn test_typecheck_let_statement() {
-        // Same types - Right type
         let code = "let x = 8;";
         test_typecheck(code);
+
+        let code = "let x = (2 + 2);";
+        test_typecheck(code);
     }
-    
+
 }
