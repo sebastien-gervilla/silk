@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use crate::{
     ast,
     lexer::Lexer,
-    token::{Token, TokenKind}
+    token::{Token, TokenKind}, typecheck::types::Type
 };
 
 // Precedences
@@ -200,6 +200,15 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
 
     let identifier = parse_identifier(parser);
 
+    let mut annotation : Option<Type> = None;
+
+    // Parsing annotation
+    if parser.is_peek_token(TokenKind::COLON) {
+        parser.assert_peek(TokenKind::COLON);
+        parser.assert_peek(TokenKind::ANNOTATION);
+        annotation = Some(parse_type(parser));
+    }
+
     // TODO: Allow for initialization only
     parser.assert_peek(TokenKind::ASSIGN);
 
@@ -212,6 +221,7 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
         ast::LetStatement {
             node,
             identifier,
+            annotation,
             expression: Some(expression)
         }
     )
@@ -336,6 +346,13 @@ fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
     let parameters = parse_function_parameters(parser);
 
     parser.assert_peek(TokenKind::RPAREN);
+
+    parser.assert_peek(TokenKind::MINUS);
+    parser.assert_peek(TokenKind::GREATER_THAN);
+    parser.assert_peek(TokenKind::ANNOTATION);
+
+    let annotation = parse_type(parser);
+
     parser.assert_peek(TokenKind::LBRACE);
     
     let body = parse_block_expression(parser);
@@ -346,6 +363,7 @@ fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
                 node,
                 identifier,
                 parameters,
+                annotation,
                 body
             }
         )
@@ -376,19 +394,31 @@ fn parse_function_parameters(parser: &mut Parser) -> Vec<ast::FunctionParameter>
         return parameters
     }
 
-    parser.next_token();
+    parser.assert_peek(TokenKind::IDENTIFIER);
+    let identifier = parse_identifier(parser);
+    
+    parser.assert_peek(TokenKind::COLON);
+    parser.assert_peek(TokenKind::ANNOTATION);
+
     parameters.push(
         ast::FunctionParameter {
-            identifier: parse_identifier(parser)
+            identifier,
+            annotation: parse_type(parser)
         }
     );
 
+    
     while !parser.is_peek_token(TokenKind::RPAREN) {
         parser.assert_peek(TokenKind::COMMA);
-        parser.next_token();
+        parser.assert_peek(TokenKind::IDENTIFIER);
+        let identifier = parse_identifier(parser);
+
+        parser.assert_peek(TokenKind::COLON);
+        parser.assert_peek(TokenKind::ANNOTATION);
         parameters.push(
             ast::FunctionParameter {
-                identifier: parse_identifier(parser)
+                identifier,
+                annotation: parse_type(parser)
             }
         );
     }
@@ -571,4 +601,18 @@ fn parse_call_arguments(parser: &mut Parser) -> Vec<Box<ast::Expression>> {
     }
     
     return arguments
+}
+
+
+// Types
+
+fn parse_type(parser: &mut Parser) -> Type {
+    match parser.current_token.value.as_str() {
+        "int" => Type::Integer,
+        "bool" => Type::Boolean,
+        _ => {
+            parser.add_error(format!("Invalid type '{}'", parser.current_token.value));
+            Type::Integer
+        },
+    }
 }
