@@ -1,4 +1,4 @@
-use crate::token::Token;
+use crate::{token::Token, typecheck::types::Type};
 
 pub struct Node {
     pub token: Token,
@@ -18,6 +18,7 @@ pub enum Statement {
 pub struct LetStatement {
     pub node: Node,
     pub identifier: Identifier,
+    pub annotation: Option<Type>,
     pub expression: Option<Box<Expression>>,
 }
 
@@ -66,11 +67,13 @@ pub struct Function {
     pub node: Node,
     pub identifier: Identifier,
     pub parameters: Vec<FunctionParameter>,
+    pub annotation: Type,
     pub body: Box<Expression>,
 }
 
 pub struct FunctionParameter {
     pub identifier: Identifier,
+    pub annotation: Type,
 }
 
 pub struct PrefixExpression {
