@@ -64,4 +64,35 @@ mod tests {
         test_typecheck(code);
     }
 
+    #[test]
+    fn test_typecheck_function() {
+        let code = "
+            fn my_function() -> int {
+                let x = 10;
+            };
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    fn test_typecheck_call_expression() {
+        let code = "
+            fn my_function() -> int {
+                let x = 10;
+            };
+
+            my_function();
+        ";
+        test_typecheck(code);
+
+        let code = "
+            fn my_function() -> int {
+                let x = 10;
+            };
+
+            let x = my_function() + 4;
+        ";
+        test_typecheck(code);
+    }
+
 }

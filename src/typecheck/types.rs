@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Type {
     Integer,
-    Boolean
+    Boolean,
+    Function(Vec<Type>, Box<Type>)
 }
 
 pub type TypeEnvironment = HashMap<String, Type>;
