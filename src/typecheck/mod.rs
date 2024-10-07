@@ -209,16 +209,19 @@ enum SymbolKind {
     Function,
 }
 
+#[derive(Clone)]
 enum Symbol {
     Variable(VariableSymbol),
     Function(FunctionSymbol),
 }
 
+#[derive(Clone)]
 struct VariableSymbol {
     name: String,
     variable_type: Type,
 }
 
+#[derive(Clone)]
 struct FunctionSymbol {
     name: String,
     return_type: Type,
@@ -351,21 +354,22 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
     match expression {
         ast::Expression::NumberLiteral(_) => {
             if expected_type != Type::Integer {
-                panic!("Expected {:?}, instead got {:?}", Type::Integer, expected_type);
+                panic!("Expected {:?}, instead got {:?}", expected_type, Type::Integer);
             }
         },
-        ast::Expression::Function(function) => check_function(symbol_table, function, expected_type),
+        ast::Expression::Function(function) => check_function(symbol_table, function),
         // ast::Expression::Infix(expression) => assert_infix_expession(expression, expected_type, environment),
-        // ast::Expression::Call(expression) => assert_call_expression(expression, expected_type, environment),
+        ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         // ast::Expression::Return(expression) => assert_return_expression(expression, expected_type, environment),
         _ => todo!()
     }
 }
 
-fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function, expected_type: Type) {
+fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function) {
+
     let body = match function.body.as_ref() {
         ast::Expression::Block(block) => block,
-        _ => todo!(),
+        _ => todo!("Function body must be a BlockExpression."), // Later we may have lambdas
     };
 
     symbol_table.enter_scope();
@@ -375,20 +379,17 @@ fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function, expe
             Symbol::Variable(
                 VariableSymbol {
                     name: parameter.identifier.value.clone(),
-                    variable_type: parameter.annotation,
+                    variable_type: parameter.annotation.clone(),
                 }
             )
         );
     }
 
     for statement in &body.statements {
-        match statement {
-            ast::Statement::Let(let_statement) => check_let_statement(symbol_table, let_statement),
-            ast::Statement::Expression(expression) => check_expression(
-                symbol_table, expression.expression.as_ref(), &mut environment
-            ),
-        }
+        check_statement(symbol_table, statement);
     }
+
+    symbol_table.exit_scope();
 }
 
 fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::BlockExpression, expected_type: Type) {
@@ -402,6 +403,40 @@ fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::Bloc
             ),
         }
     };
+}
+
+fn check_call_expression(symbol_table: &mut SymbolTable, expression: &ast::CallExpression, expected_type: Type) {
+
+    let get_symbol_result = match expression.identifier.as_ref() {
+        ast::Expression::Identifier(identifier) => symbol_table.get(&identifier.value).cloned(),
+        _ => todo!(),
+    };
+
+    let function_symbol = match get_symbol_result {
+        Some(symbol) => {
+            match symbol {
+                Symbol::Function(function) => function,
+                _ => panic!("Expected function"),
+            }
+        },
+        None => panic!("Function not found"),
+    };
+
+    if function_symbol.return_type != expected_type {
+        panic!("Expected {:?}, instead got {:?}", expected_type, function_symbol.return_type);
+    }
+
+    if expression.arguments.len() != function_symbol.parameters.len() {
+        panic!("Expected {:?} arguments, instead got {:?}", function_symbol.parameters.len(), expression.arguments.len());
+    }
+
+    for index in 0..expression.arguments.len() {
+        check_expression(
+            symbol_table, 
+            expression.arguments[index].as_ref(), 
+            function_symbol.parameters[index].clone() // TODO: reference instead of clone
+        );
+    }
 }
 
 // Synthesizing
