@@ -286,6 +286,7 @@ fn check_call_expression(symbol_table: &mut SymbolTable, expression: &ast::CallE
 
 fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expression) -> Type {
     match expression {
+        ast::Expression::Identifier(identifier) => synthesize_identifier(symbol_table, identifier),
         ast::Expression::NumberLiteral(_) => Type::Integer,
         ast::Expression::BooleanLiteral(_) => Type::Boolean,
         ast::Expression::Function(_) => Type::Void,
@@ -294,6 +295,20 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
         _ => todo!(),
     }
+}
+
+fn synthesize_identifier(symbol_table: &SymbolTable, identifier: &ast::Identifier) -> Type {
+    let variable_symbol = match symbol_table.get(&identifier.value) {
+        Some(symbol) => {
+            match symbol {
+                Symbol::Variable(variable) => variable,
+                _ => panic!("Expected variable"),
+            }
+        },
+        None => panic!("Variable not found"),
+    };
+
+    return variable_symbol.variable_type.clone()
 }
 
 fn synthesize_infix_expression(expression: &ast::InfixExpression) -> Type {
