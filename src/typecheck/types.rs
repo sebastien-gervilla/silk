@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Type {
+    Void,
     Integer,
     Boolean,
     Function(Vec<Type>, Box<Type>)

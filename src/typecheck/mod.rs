@@ -278,6 +278,10 @@ fn get_symbol_name(symbol: &Symbol) -> String {
     }
 }
 
+pub fn check_program(file: &ast::File) {
+    check_file(file);
+}
+
 pub fn check_file(file: &ast::File) {
     let mut symbol_table = SymbolTable::new();
 
@@ -317,7 +321,7 @@ fn check_statement(symbol_table: &mut SymbolTable, statement: &ast::Statement) {
         ast::Statement::Let(let_statement) => check_let_statement(symbol_table, let_statement),
         ast::Statement::Expression(expression) => {
             let expected_type = synthesize_expression(symbol_table, &expression.expression);
-            check_expression(symbol_table, expected_type, &expression.expression)
+            check_expression(symbol_table, &expression.expression, expected_type)
         },
     }
 }
@@ -359,6 +363,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         },
         ast::Expression::Function(function) => check_function(symbol_table, function),
         // ast::Expression::Infix(expression) => assert_infix_expession(expression, expected_type, environment),
+        ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         // ast::Expression::Return(expression) => assert_return_expression(expression, expected_type, environment),
         _ => todo!()
@@ -393,16 +398,24 @@ fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function) {
 }
 
 fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::BlockExpression, expected_type: Type) {
-    let block_type: Type;
 
     for statement in &expression.statements {
-        match statement {
-            ast::Statement::Let(let_statement) => check_let_statement(symbol_table, let_statement),
-            ast::Statement::Expression(expression) => check_expression(
-                symbol_table, expression.expression.as_ref(), &mut environment
-            ),
-        }
+        check_statement(symbol_table, statement);
     };
+
+    match &expression.statements[0] {
+        ast::Statement::Let(_) => {
+            if expected_type != Type::Void {
+                panic!("Expected {:?}, instead got {:?}", expected_type, Type::Void);
+            }
+        },
+        ast::Statement::Expression(expression) => {
+            let body_type = synthesize_expression(symbol_table, &expression.expression);
+            if expected_type != body_type {
+                panic!("Expected {:?}, instead got {:?}", expected_type, body_type);
+            }
+        }
+    }
 }
 
 fn check_call_expression(symbol_table: &mut SymbolTable, expression: &ast::CallExpression, expected_type: Type) {
@@ -445,7 +458,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
     match expression {
         ast::Expression::NumberLiteral(_) => Type::Integer,
         ast::Expression::BooleanLiteral(_) => Type::Boolean,
-        ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
+        // ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         // ast::Expression::Infix(infix) => synthesize_infix_expression(infix, environment),
         // ast::Expression::Call(call) => synthesize_call_expression(call, environment),
         _ => todo!()
