@@ -95,4 +95,13 @@ mod tests {
         test_typecheck(code);
     }
 
+    #[test]
+    fn test_typecheck_identifier() {
+        let code = "
+            let x = 3;
+            let y: int = x;
+        ";
+        test_typecheck(code);
+    }
+
 }
