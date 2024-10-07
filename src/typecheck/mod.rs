@@ -159,6 +159,7 @@ fn check_let_statement(symbol_table: &mut SymbolTable, statement: &ast::LetState
 
 fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression, expected_type: Type) {
     match expression {
+        ast::Expression::Identifier(identifier) => check_identifier(symbol_table, identifier, expected_type),
         ast::Expression::NumberLiteral(_) => {
             if expected_type != Type::Integer {
                 panic!("Expected {:?}, instead got {:?}", expected_type, Type::Integer);
@@ -170,6 +171,14 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         // ast::Expression::Return(expression) => assert_return_expression(expression, expected_type, environment),
         _ => todo!()
+    }
+}
+
+fn check_identifier(symbol_table: &mut SymbolTable, identifier: &ast::Identifier, expected_type: Type) {
+    let variable_type = synthesize_identifier(symbol_table, identifier);
+
+    if expected_type != variable_type {
+        panic!("Expected {:?}, instead got {:?}", expected_type, variable_type);
     }
 }
 
