@@ -83,6 +83,7 @@ impl<'a> Lexer<'a> {
             b'(' => token.kind = TokenKind::LPAREN,
             b')' => token.kind = TokenKind::RPAREN,
             b',' => token.kind = TokenKind::COMMA,
+            b':' => token.kind = TokenKind::COLON,
             _ => {
                 if self.is_valid_character() {
                     token.value = self.read_identifier();
