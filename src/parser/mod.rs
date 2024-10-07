@@ -248,8 +248,7 @@ fn parse_expression(parser: &mut Parser, precedence: Precedence) -> Box<ast::Exp
     let prefix_function = match parser.prefix_parsing_functions.get(&parser.current_token.kind) {
         Some(prefix_function) => *prefix_function,
         None => {
-            parser.add_error("".to_string());
-            panic!("TODO")
+            panic!("Prefix function for token {:?} not found", parser.current_token.kind)
         }
     };
 
