@@ -458,9 +458,29 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
     match expression {
         ast::Expression::NumberLiteral(_) => Type::Integer,
         ast::Expression::BooleanLiteral(_) => Type::Boolean,
+        ast::Expression::Function(_) => Type::Void,
         // ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         // ast::Expression::Infix(infix) => synthesize_infix_expression(infix, environment),
-        // ast::Expression::Call(call) => synthesize_call_expression(call, environment),
-        _ => todo!()
+        ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
+        _ => todo!(),
     }
+}
+
+fn synthesize_call_expression(symbol_table: &SymbolTable, expression: &ast::CallExpression) -> Type {
+    let get_symbol_result = match expression.identifier.as_ref() {
+        ast::Expression::Identifier(identifier) => symbol_table.get(&identifier.value),
+        _ => todo!(),
+    };
+
+    let function_symbol = match get_symbol_result {
+        Some(symbol) => {
+            match symbol {
+                Symbol::Function(function) => function,
+                _ => panic!("Expected function"),
+            }
+        },
+        None => panic!("Function not found"),
+    };
+
+    return function_symbol.return_type.clone()
 }
