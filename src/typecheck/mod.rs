@@ -362,7 +362,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
             }
         },
         ast::Expression::Function(function) => check_function(symbol_table, function),
-        // ast::Expression::Infix(expression) => assert_infix_expession(expression, expected_type, environment),
+        ast::Expression::Infix(expression) => check_infix_expession(symbol_table, expression, expected_type),
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         // ast::Expression::Return(expression) => assert_return_expression(expression, expected_type, environment),
@@ -395,6 +395,33 @@ fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function) {
     }
 
     symbol_table.exit_scope();
+}
+
+fn check_infix_expession(symbol_table: &SymbolTable, expression: &ast::InfixExpression, expected_type: Type) {
+    let left_type = synthesize_expression(symbol_table, &expression.left_expression);
+    let right_type = synthesize_expression(symbol_table, &expression.right_expression);
+
+    if left_type != right_type {
+        panic!("Type mismatch in infix expression: {:?} != {:?}", left_type, right_type);
+    }
+
+    match expression.operator.as_str() {
+        "+" | "-" | "/" | "*" => {
+            if left_type != Type::Integer {
+                panic!("Type error: Expected type {:?}, got {:?} instead.", Type::Integer, left_type)
+            }
+        },
+        "==" | "!=" | ">" | "<" => {
+            if left_type != Type::Boolean {
+                panic!("Type error: Expected type {:?}, got {:?} instead.", Type::Integer, left_type)
+            }
+        },
+        _ => panic!("Operator not supported.")
+    }
+
+    if expected_type != left_type {
+        panic!("Expected {:?}, instead got {:?}", expected_type, left_type);
+    }
 }
 
 fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::BlockExpression, expected_type: Type) {
