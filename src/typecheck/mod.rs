@@ -460,9 +460,17 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::BooleanLiteral(_) => Type::Boolean,
         ast::Expression::Function(_) => Type::Void,
         // ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
-        // ast::Expression::Infix(infix) => synthesize_infix_expression(infix, environment),
+        ast::Expression::Infix(expression) => synthesize_infix_expression(expression),
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
         _ => todo!(),
+    }
+}
+
+fn synthesize_infix_expression(expression: &ast::InfixExpression) -> Type {
+    match expression.operator.as_str() {
+        "+" | "-" | "*" | "/" => Type::Integer,
+        "==" | "!=" | ">" | "<" => Type::Boolean,
+        operator => panic!("Invalid operator {:?} found", operator),
     }
 }
 
