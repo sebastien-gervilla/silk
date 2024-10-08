@@ -243,7 +243,7 @@ fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::Bloc
         check_statement(symbol_table, statement);
     };
 
-    match &expression.statements[0] {
+    match &expression.statements[expression.statements.len() - 1] {
         ast::Statement::Let(_) => {
             if expected_type != Type::Void {
                 panic!("Expected {:?}, instead got {:?}", expected_type, Type::Void);
@@ -309,8 +309,8 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::NumberLiteral(_) => Type::Integer,
         ast::Expression::BooleanLiteral(_) => Type::Boolean,
         ast::Expression::Function(_) => Type::Void,
-        // ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::Infix(expression) => synthesize_infix_expression(expression),
+        ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
         _ => todo!(),
@@ -336,6 +336,15 @@ fn synthesize_infix_expression(expression: &ast::InfixExpression) -> Type {
         "+" | "-" | "*" | "/" => Type::Integer,
         "==" | "!=" | ">" | "<" => Type::Boolean,
         operator => panic!("Invalid operator {:?} found", operator),
+    }
+}
+
+fn synthesize_block_expression(symbol_table: &SymbolTable, expression: &ast::BlockExpression) -> Type {
+    match &expression.statements[expression.statements.len() - 1] {
+        ast::Statement::Let(_) => Type::Void,
+        ast::Statement::Expression(expression) => {
+            synthesize_expression(symbol_table, &expression.expression)
+        }
     }
 }
 
