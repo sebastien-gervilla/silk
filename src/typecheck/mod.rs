@@ -314,6 +314,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::NumberLiteral(_) => Type::Integer,
         ast::Expression::BooleanLiteral(_) => Type::Boolean,
         ast::Expression::Function(_) => Type::Void,
+        ast::Expression::Prefix(expression) => synthesize_prefix_expression(expression),
         ast::Expression::Infix(expression) => synthesize_infix_expression(expression),
         ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
@@ -334,6 +335,14 @@ fn synthesize_identifier(symbol_table: &SymbolTable, identifier: &ast::Identifie
     };
 
     return variable_symbol.variable_type.clone()
+}
+
+fn synthesize_prefix_expression(expression: &ast::PrefixExpression) -> Type {
+    match expression.operator.as_str() {
+        "-" => Type::Integer,
+        "!" => Type::Boolean,
+        operator => panic!("Invalid operator {:?} found", operator),
+    }
 }
 
 fn synthesize_infix_expression(expression: &ast::InfixExpression) -> Type {
