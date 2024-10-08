@@ -301,6 +301,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::Function(_) => Type::Void,
         // ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::Infix(expression) => synthesize_infix_expression(expression),
+        ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
         _ => todo!(),
     }
@@ -325,6 +326,22 @@ fn synthesize_infix_expression(expression: &ast::InfixExpression) -> Type {
         "+" | "-" | "*" | "/" => Type::Integer,
         "==" | "!=" | ">" | "<" => Type::Boolean,
         operator => panic!("Invalid operator {:?} found", operator),
+    }
+}
+
+fn synthesize_if_expression(symbol_table: &SymbolTable, expression: &ast::IfExpression) -> Type {
+    let consequence_type = synthesize_expression(symbol_table, &expression.consequence);
+    
+    match &expression.alternative {
+        Some(alternative) => {
+            let alternative_type = synthesize_expression(symbol_table, alternative.as_ref());
+            if consequence_type != alternative_type {
+                panic!("Type mismatch in if expression: {:?} != {:?}", consequence_type, alternative_type);
+            }
+
+            consequence_type
+        },
+        None => consequence_type,
     }
 }
 
