@@ -104,4 +104,17 @@ mod tests {
         test_typecheck(code);
     }
 
+    #[test]
+    fn test_typecheck_if_expression() {
+        let code = "
+            let x: int = if 1 > 2 {
+                15;
+            } else {
+                20;
+            };
+            
+        ";
+        test_typecheck(code);
+    }
+
 }

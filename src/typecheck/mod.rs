@@ -168,6 +168,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::Function(function) => check_function(symbol_table, function),
         ast::Expression::Infix(expression) => check_infix_expession(symbol_table, expression, expected_type),
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
+        ast::Expression::If(expression) => check_if_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         // ast::Expression::Return(expression) => assert_return_expression(expression, expected_type, environment),
         _ => todo!()
@@ -255,6 +256,15 @@ fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::Bloc
             }
         }
     }
+}
+
+fn check_if_expression(symbol_table: &mut SymbolTable, expression: &ast::IfExpression, expected_type: Type) {
+    check_expression(symbol_table, &expression.condition, Type::Boolean);
+    check_expression(symbol_table, &expression.consequence, expected_type.clone());
+    
+    if let Some(alternative) = &expression.alternative {
+        check_expression(symbol_table, &alternative, expected_type);
+    };
 }
 
 fn check_call_expression(symbol_table: &mut SymbolTable, expression: &ast::CallExpression, expected_type: Type) {
