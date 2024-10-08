@@ -176,7 +176,9 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
         ast::Expression::If(expression) => check_if_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
-        // ast::Expression::Return(expression) => assert_return_expression(expression, expected_type, environment),
+        ast::Expression::Return(_) => {
+            // This is handled by the first pass, we don't need to check for returns
+        },
         _ => todo!()
     }
 }
@@ -340,6 +342,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
+        ast::Expression::Return(_) => panic!("TODO: synthesize_expression must return an optional type"),
         _ => todo!(),
     }
 }
