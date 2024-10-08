@@ -64,4 +64,83 @@ mod tests {
         test_typecheck(code);
     }
 
+    #[test]
+    fn test_typecheck_function() {
+        let code = "
+            fn my_function() -> int {
+                let x = 10;
+            };
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    fn test_typecheck_call_expression() {
+        let code = "
+            fn my_function() -> int {
+                let x = 10;
+            };
+
+            my_function();
+        ";
+        test_typecheck(code);
+
+        let code = "
+            fn my_function() -> int {
+                let x = 10;
+            };
+
+            let x = my_function() + 4;
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    fn test_typecheck_identifier() {
+        let code = "
+            let x = 3;
+            let y: int = x;
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    fn test_typecheck_if_expression() {
+        let code = "
+            let x: int = if 1 > 2 {
+                15;
+            } else {
+                20;
+            };
+            
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    fn test_typecheck_prefix_expression() {
+        let code = "
+            let x: int = -5;  
+        ";
+        test_typecheck(code);
+        
+        let code = "
+            if !true {
+                -5;
+            };
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    fn test_typecheck_while_expression() {
+        let code = "
+            while true {
+                let x = 5;
+                12;
+            };
+        ";
+        test_typecheck(code);
+    }
+
 }
