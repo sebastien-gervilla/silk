@@ -171,6 +171,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
             }
         },
         ast::Expression::Function(function) => check_function(symbol_table, function),
+        ast::Expression::Prefix(expression) => check_prefix_expession(symbol_table, expression, expected_type),
         ast::Expression::Infix(expression) => check_infix_expession(symbol_table, expression, expected_type),
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
         ast::Expression::If(expression) => check_if_expression(symbol_table, expression, expected_type),
@@ -213,6 +214,26 @@ fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function) {
     }
 
     symbol_table.exit_scope();
+}
+
+fn check_prefix_expession(symbol_table: &mut SymbolTable, expression: &ast::PrefixExpression, expected_type: Type) {
+    match expression.operator.as_str() {
+        "!" => {
+            check_expression(symbol_table, &expression.expression, Type::Boolean);
+
+            if expected_type != Type::Boolean {
+                panic!("Type error: Expected type {:?}, got {:?} instead.", expected_type, Type::Boolean)
+            }
+        },
+        "-" => {
+            check_expression(symbol_table, &expression.expression, Type::Integer);
+
+            if expected_type != Type::Integer {
+                panic!("Type error: Expected type {:?}, got {:?} instead.", expected_type, Type::Integer)
+            }
+        },
+        operator => panic!("Invalid operator {:?} found", operator),
+    }
 }
 
 fn check_infix_expession(symbol_table: &SymbolTable, expression: &ast::InfixExpression, expected_type: Type) {

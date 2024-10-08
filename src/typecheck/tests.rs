@@ -117,4 +117,19 @@ mod tests {
         test_typecheck(code);
     }
 
+    #[test]
+    fn test_typecheck_prefix_expression() {
+        let code = "
+            let x: int = -5;  
+        ";
+        test_typecheck(code);
+        
+        let code = "
+            if !true {
+                -5;
+            };
+        ";
+        test_typecheck(code);
+    }
+
 }
