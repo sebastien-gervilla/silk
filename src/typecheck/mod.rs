@@ -175,6 +175,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::Infix(expression) => check_infix_expession(symbol_table, expression, expected_type),
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
         ast::Expression::If(expression) => check_if_expression(symbol_table, expression, expected_type),
+        ast::Expression::While(expression) => check_while_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         ast::Expression::Return(_) => {
             // This is handled by the first pass, we don't need to check for returns
@@ -295,6 +296,19 @@ fn check_if_expression(symbol_table: &mut SymbolTable, expression: &ast::IfExpre
     };
 }
 
+fn check_while_expression(symbol_table: &mut SymbolTable, expression: &ast::WhileExpression, expected_type: Type) {
+    check_expression(symbol_table, &expression.condition, Type::Boolean);
+
+    match &expression.iteration.as_ref() {
+        ast::Expression::Block(expression) => {
+            for statement in &expression.statements {
+                check_statement(symbol_table, statement);
+            };
+        },
+        _ => panic!("Expected BlockExpression."), // TODO: This should be put in semantic analysis
+    }
+}
+
 fn check_call_expression(symbol_table: &mut SymbolTable, expression: &ast::CallExpression, expected_type: Type) {
 
     let get_symbol_result = match expression.identifier.as_ref() {
@@ -341,6 +355,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::Infix(expression) => synthesize_infix_expression(expression),
         ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
+        ast::Expression::While(_) => Type::Void,
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
         ast::Expression::Return(_) => panic!("TODO: synthesize_expression must return an optional type"),
         _ => todo!(),

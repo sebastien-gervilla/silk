@@ -132,4 +132,15 @@ mod tests {
         test_typecheck(code);
     }
 
+    #[test]
+    fn test_typecheck_while_expression() {
+        let code = "
+            while true {
+                let x = 5;
+                12;
+            };
+        ";
+        test_typecheck(code);
+    }
+
 }
