@@ -4,7 +4,7 @@ use crate::{
     ast, lexer::Lexer, parser::{
         parse_file, 
         Parser
-    }
+    }, typecheck::check_program
 };
 
 pub mod tests;
@@ -30,6 +30,10 @@ impl<'a> Compiler<'a> {
         let mut parser = Parser::new(&mut lexer);
 
         let ast = parse_file(&mut parser);
+        println!("Parsing completed.");
+
+        check_program(&ast);
+        println!("Typechecking completed.");
 
         self.compile_file(&ast);
     }

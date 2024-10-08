@@ -26,6 +26,7 @@ pub enum TokenKind {
     // Delimiters
     EOF,
     COMMA,
+    COLON,
     SEMICOLON,
 	LPAREN,
 	RPAREN,
@@ -44,6 +45,7 @@ pub enum TokenKind {
     WHILE,
     FUNCTION,
     RETURN,
+    ANNOTATION,
 }
 
 pub type Keywords = HashMap<&'static str, TokenKind>;
@@ -60,6 +62,8 @@ pub fn get_keywords() -> Keywords {
     keywords.insert("fn", TokenKind::FUNCTION);
     keywords.insert("return", TokenKind::RETURN);
 
+    keywords.insert("int", TokenKind::ANNOTATION);
+    keywords.insert("bool", TokenKind::ANNOTATION);
 
     return keywords
 }
