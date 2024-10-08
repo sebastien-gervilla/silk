@@ -165,6 +165,11 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
                 panic!("Expected {:?}, instead got {:?}", expected_type, Type::Integer);
             }
         },
+        ast::Expression::BooleanLiteral(_) => {
+            if expected_type != Type::Boolean {
+                panic!("Expected {:?}, instead got {:?}", expected_type, Type::Boolean);
+            }
+        },
         ast::Expression::Function(function) => check_function(symbol_table, function),
         ast::Expression::Infix(expression) => check_infix_expession(symbol_table, expression, expected_type),
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
