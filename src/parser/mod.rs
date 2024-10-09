@@ -68,7 +68,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(10);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(11);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
@@ -79,6 +79,8 @@ fn get_infix_parsing_functions() -> InfixParsingFunctions {
     functions.insert(TokenKind::GREATER_THAN, parse_infix_expression);
     functions.insert(TokenKind::LESS_THAN, parse_infix_expression);
 
+    functions.insert(TokenKind::ASSIGN, parse_assignment_expression);
+    
     functions.insert(TokenKind::LPAREN, parse_call_expression);
 
     return functions
@@ -476,6 +478,33 @@ fn parse_grouped_expression(parser: &mut Parser) -> Box<ast::Expression> {
     parser.assert_peek(TokenKind::RPAREN);
 
     return expression
+}
+
+fn parse_assignment_expression(parser: &mut Parser, expression: Box<ast::Expression>) -> Box<ast::Expression> {
+
+    let identifier = match *expression {
+        ast::Expression::Identifier(identifier) => identifier,
+        _ => {
+            parser.add_error(String::from("Expected identifier."));
+            panic!("Expected identifier.");
+        },
+    };
+
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+
+    return Box::new(
+        ast::Expression::Assign(
+            ast::AssignmentExpression {
+                node,
+                identifier,
+                expression: parse_expression(parser, Precedence::LOWEST),
+            }
+        )
+    )
 }
 
 fn parse_block_expression(parser: &mut Parser) -> Box<ast::Expression> {
