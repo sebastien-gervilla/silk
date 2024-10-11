@@ -22,6 +22,8 @@ pub enum TokenKind {
     MINUS,
     ASTERISK,
     SLASH,
+    AND,
+    OR,
 
     // Delimiters
     EOF,

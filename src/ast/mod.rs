@@ -36,6 +36,7 @@ pub enum Expression {
     Function(Function),
     Prefix(PrefixExpression),
     Infix(InfixExpression),
+    Assign(AssignmentExpression),
     Block(BlockExpression),
     If(IfExpression),
     While(WhileExpression),
@@ -87,6 +88,12 @@ pub struct InfixExpression {
     pub operator: String,
     pub left_expression: Box<Expression>,
     pub right_expression: Box<Expression>,
+}
+
+pub struct AssignmentExpression {
+    pub node: Node,
+    pub identifier: Identifier,
+    pub expression: Box<Expression>,
 }
 
 pub struct BlockExpression {
