@@ -4,8 +4,7 @@ mod tests {
         bytecode::{
             Chunk,
             OperationCode
-        },
-        vm::VM
+        }, value::Value, vm::VM
     };
 
     #[test]
@@ -14,16 +13,16 @@ mod tests {
         let mut chunk = Chunk::new();
 
         // CONSTANT 1.5
-        chunk.add_constant(1.5, 1);
+        chunk.add_constant(Value::F64(1.5), 1);
 
         // CONSTANT 2.5
-        chunk.add_constant(2.5, 1);
+        chunk.add_constant(Value::F64(2.5), 1);
 
         // ADD => 4
         chunk.add_operation(OperationCode::ADD, 1);
 
         // CONSTANT 4
-        chunk.add_constant(4.0, 1);
+        chunk.add_constant(Value::F64(4.5), 1);
 
         // DIVIDE => 1
         chunk.add_operation(OperationCode::DIVIDE, 1);

@@ -45,7 +45,7 @@ impl Chunk {
         }
     }
 
-    pub fn add_constant(&mut self, constant: f64, line: usize) {
+    pub fn add_constant(&mut self, constant: Value, line: usize) {
         self.add_operation(OperationCode::CONSTANT, line);
         self.contants.push(constant);
         self.add_instruction((self.contants.len() - 1) as u8, line);

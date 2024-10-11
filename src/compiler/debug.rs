@@ -44,7 +44,7 @@ fn handle_constant_instruction(chunk: &Chunk, offset: usize) -> usize {
     let constant_index = chunk.code[offset + 1];
     
     println!(
-        "CONSTANT (VALUE: {}, index: {}) ", 
+        "CONSTANT (VALUE: {:?}, index: {}) ", 
         chunk.contants[constant_index as usize], 
         constant_index
     );
