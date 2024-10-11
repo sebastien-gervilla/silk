@@ -5,26 +5,28 @@ use std::collections::HashMap;
 use crate::{
     ast,
     lexer::Lexer,
-    token::{Token, TokenKind}
+    token::{Token, TokenKind}, typecheck::types::Type
 };
 
 // Precedences
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Precedence {
     LOWEST,
+	ASSIGNMENT,     // =
 	EQUALITY,       // ==, !=
 	LESSGREATER,    // >, <
 	SUM,            // +, -
 	PRODUCT,        // *, /
 	PREFIX,         // -expression, !expression
-	CALL,         // identifier(expression, expression)
+	CALL,           // identifier(expression, expression)
 }
 
 type Precedences = HashMap<TokenKind, Precedence>;
 
 fn get_precedences() -> Precedences {
-    let mut precedences = Precedences::with_capacity(8);
+    let mut precedences = Precedences::with_capacity(9);
 
+    precedences.insert(TokenKind::ASSIGN, Precedence::ASSIGNMENT);
     precedences.insert(TokenKind::EQUALS, Precedence::EQUALITY);
     precedences.insert(TokenKind::NOT_EQUALS, Precedence::EQUALITY);
     precedences.insert(TokenKind::GREATER_THAN, Precedence::LESSGREATER);
@@ -47,14 +49,16 @@ type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
     let mut functions: PrefixParsingFunctions = HashMap::with_capacity(11);
 
-    functions.insert(TokenKind::IDENTIFIER, parse_identifier);
+    functions.insert(TokenKind::IDENTIFIER, parse_identifier_expression);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
     functions.insert(TokenKind::TRUE, parse_boolean_literal);
     functions.insert(TokenKind::FALSE, parse_boolean_literal);
 
     functions.insert(TokenKind::FUNCTION, parse_function);
+    functions.insert(TokenKind::RETURN, parse_return_expression);
 
+    functions.insert(TokenKind::LPAREN, parse_grouped_expression);
     functions.insert(TokenKind::LBRACE, parse_block_expression);
     functions.insert(TokenKind::IF, parse_if_expression);
     functions.insert(TokenKind::WHILE, parse_while_expression);
@@ -66,7 +70,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(10);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(11);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
@@ -77,6 +81,8 @@ fn get_infix_parsing_functions() -> InfixParsingFunctions {
     functions.insert(TokenKind::GREATER_THAN, parse_infix_expression);
     functions.insert(TokenKind::LESS_THAN, parse_infix_expression);
 
+    functions.insert(TokenKind::ASSIGN, parse_assignment_expression);
+    
     functions.insert(TokenKind::LPAREN, parse_call_expression);
 
     return functions
@@ -86,7 +92,7 @@ pub struct Parser<'a> {
     lexer: &'a mut Lexer<'a>,
     current_token: Token,
     peek_token: Token,
-    errors: Vec<String>,
+    pub errors: Vec<String>,
     prefix_parsing_functions: PrefixParsingFunctions,
     infix_parsing_functions: InfixParsingFunctions,
     precedences: Precedences
@@ -198,6 +204,15 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
 
     let identifier = parse_identifier(parser);
 
+    let mut annotation : Option<Type> = None;
+
+    // Parsing annotation
+    if parser.is_peek_token(TokenKind::COLON) {
+        parser.assert_peek(TokenKind::COLON);
+        parser.assert_peek(TokenKind::ANNOTATION);
+        annotation = Some(parse_type(parser));
+    }
+
     // TODO: Allow for initialization only
     parser.assert_peek(TokenKind::ASSIGN);
 
@@ -210,6 +225,7 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
         ast::LetStatement {
             node,
             identifier,
+            annotation,
             expression: Some(expression)
         }
     )
@@ -236,8 +252,7 @@ fn parse_expression(parser: &mut Parser, precedence: Precedence) -> Box<ast::Exp
     let prefix_function = match parser.prefix_parsing_functions.get(&parser.current_token.kind) {
         Some(prefix_function) => *prefix_function,
         None => {
-            parser.add_error("".to_string());
-            panic!("TODO")
+            panic!("Prefix function for token {:?} not found", parser.current_token.kind)
         }
     };
 
@@ -256,17 +271,21 @@ fn parse_expression(parser: &mut Parser, precedence: Precedence) -> Box<ast::Exp
     return left_expression
 }
 
-fn parse_identifier(parser: &mut Parser) -> Box<ast::Expression> {
+fn parse_identifier_expression(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::Identifier(
-            ast::Identifier {
-                node: ast::Node {
-                    token: parser.get_current_token(),
-                },
-                value: parser.current_token.value.clone()
-            }
+            parse_identifier(parser)
         )
     )
+}
+
+fn parse_identifier(parser: &mut Parser) -> ast::Identifier {
+    ast::Identifier {
+        node: ast::Node {
+            token: parser.get_current_token(),
+        },
+        value: parser.current_token.value.clone()
+    }
 }
 
 fn parse_number_literal(parser: &mut Parser) -> Box<ast::Expression> {
@@ -330,6 +349,13 @@ fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
     let parameters = parse_function_parameters(parser);
 
     parser.assert_peek(TokenKind::RPAREN);
+
+    parser.assert_peek(TokenKind::MINUS);
+    parser.assert_peek(TokenKind::GREATER_THAN);
+    parser.assert_peek(TokenKind::ANNOTATION);
+
+    let annotation = parse_type(parser);
+
     parser.assert_peek(TokenKind::LBRACE);
     
     let body = parse_block_expression(parser);
@@ -340,7 +366,25 @@ fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
                 node,
                 identifier,
                 parameters,
+                annotation,
                 body
+            }
+        )
+    )
+}
+
+fn parse_return_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+
+    return Box::new(
+        ast::Expression::Return(
+            ast::ReturnExpression {
+                node,
+                expression: parse_expression(parser, Precedence::LOWEST),
             }
         )
     )
@@ -353,19 +397,31 @@ fn parse_function_parameters(parser: &mut Parser) -> Vec<ast::FunctionParameter>
         return parameters
     }
 
-    parser.next_token();
+    parser.assert_peek(TokenKind::IDENTIFIER);
+    let identifier = parse_identifier(parser);
+    
+    parser.assert_peek(TokenKind::COLON);
+    parser.assert_peek(TokenKind::ANNOTATION);
+
     parameters.push(
         ast::FunctionParameter {
-            identifier: parse_identifier(parser)
+            identifier,
+            annotation: parse_type(parser)
         }
     );
 
+    
     while !parser.is_peek_token(TokenKind::RPAREN) {
         parser.assert_peek(TokenKind::COMMA);
-        parser.next_token();
+        parser.assert_peek(TokenKind::IDENTIFIER);
+        let identifier = parse_identifier(parser);
+
+        parser.assert_peek(TokenKind::COLON);
+        parser.assert_peek(TokenKind::ANNOTATION);
         parameters.push(
             ast::FunctionParameter {
-                identifier: parse_identifier(parser)
+                identifier,
+                annotation: parse_type(parser)
             }
         );
     }
@@ -411,6 +467,43 @@ fn parse_infix_expression(parser: &mut Parser, left_expression: Box<ast::Express
                 operator,
                 left_expression,
                 right_expression: parse_expression(parser, precedence)
+            }
+        )
+    )
+}
+
+fn parse_grouped_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    parser.next_token();
+
+    let expression = parse_expression(parser, Precedence::LOWEST);
+
+    parser.assert_peek(TokenKind::RPAREN);
+
+    return expression
+}
+
+fn parse_assignment_expression(parser: &mut Parser, expression: Box<ast::Expression>) -> Box<ast::Expression> {
+
+    let identifier = match *expression {
+        ast::Expression::Identifier(identifier) => identifier,
+        _ => {
+            parser.add_error(String::from("Expected identifier."));
+            panic!("Expected identifier.");
+        },
+    };
+
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+
+    return Box::new(
+        ast::Expression::Assign(
+            ast::AssignmentExpression {
+                node,
+                identifier,
+                expression: parse_expression(parser, Precedence::LOWEST),
             }
         )
     )
@@ -538,4 +631,18 @@ fn parse_call_arguments(parser: &mut Parser) -> Vec<Box<ast::Expression>> {
     }
     
     return arguments
+}
+
+
+// Types
+
+fn parse_type(parser: &mut Parser) -> Type {
+    match parser.current_token.value.as_str() {
+        "int" => Type::Integer,
+        "bool" => Type::Boolean,
+        _ => {
+            parser.add_error(format!("Invalid type '{}'", parser.current_token.value));
+            Type::Integer
+        },
+    }
 }

@@ -1,4 +1,4 @@
-use crate::token::Token;
+use crate::{token::Token, typecheck::types::Type};
 
 pub struct Node {
     pub token: Token,
@@ -17,7 +17,8 @@ pub enum Statement {
 
 pub struct LetStatement {
     pub node: Node,
-    pub identifier: Box<Expression>,
+    pub identifier: Identifier,
+    pub annotation: Option<Type>,
     pub expression: Option<Box<Expression>>,
 }
 
@@ -35,10 +36,12 @@ pub enum Expression {
     Function(Function),
     Prefix(PrefixExpression),
     Infix(InfixExpression),
+    Assign(AssignmentExpression),
     Block(BlockExpression),
     If(IfExpression),
     While(WhileExpression),
     Call(CallExpression),
+    Return(ReturnExpression),
 }
 
 pub struct Identifier {
@@ -63,13 +66,15 @@ pub struct BooleanLiteral {
 
 pub struct Function {
     pub node: Node,
-    pub identifier: Box<Expression>,
+    pub identifier: Identifier,
     pub parameters: Vec<FunctionParameter>,
+    pub annotation: Type,
     pub body: Box<Expression>,
 }
 
 pub struct FunctionParameter {
-    pub identifier: Box<Expression>,
+    pub identifier: Identifier,
+    pub annotation: Type,
 }
 
 pub struct PrefixExpression {
@@ -83,6 +88,12 @@ pub struct InfixExpression {
     pub operator: String,
     pub left_expression: Box<Expression>,
     pub right_expression: Box<Expression>,
+}
+
+pub struct AssignmentExpression {
+    pub node: Node,
+    pub identifier: Identifier,
+    pub expression: Box<Expression>,
 }
 
 pub struct BlockExpression {
@@ -107,4 +118,9 @@ pub struct CallExpression {
     pub node: Node,
     pub identifier: Box<Expression>,
     pub arguments: Vec<Box<Expression>>,
+}
+
+pub struct ReturnExpression {
+    pub node: Node,
+    pub expression: Box<Expression>,
 }
