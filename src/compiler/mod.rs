@@ -84,6 +84,7 @@ impl<'a> Compiler<'a> {
         self.compile_expression(&expression.expression);
 
         match expression.operator.as_str() {
+            "!" => self.chunk.add_operation(OperationCode::NOT, expression.node.token.line),
             "-" => self.chunk.add_operation(OperationCode::NEGATE, expression.node.token.line),
             _ => todo!()
         }

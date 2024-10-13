@@ -1,4 +1,4 @@
-use super::{bytecode::{Chunk, OperationCode}, debug::disassemble_instruction, value::Value, Compiler};
+use super::{bytecode::{Chunk, OperationCode}, debug::disassemble_instruction, value::Value};
 
 const STACK_SIZE: usize = 256;
 
@@ -68,6 +68,7 @@ impl<'a> VM<'a> {
                 OperationCode::SUBSTRACT => self.run_binary_operation(|a, b| a - b),
                 OperationCode::MULTIPLY => self.run_binary_operation(|a, b| a * b),
                 OperationCode::DIVIDE => self.run_binary_operation(|a, b| a / b),
+                OperationCode::NOT => self.run_not_operation(),
                 OperationCode::NEGATE => self.run_negate_operation(),
                 OperationCode::CONSTANT => self.run_constant_operation(),
                 OperationCode::UNKNOW => panic!("Unknow instruction")
@@ -99,6 +100,15 @@ impl<'a> VM<'a> {
         }
 
         panic!("Expected left to be f64, instead got {:?}", a);
+    }
+
+    fn run_not_operation(&mut self) {
+        let value = self.stack_pop();
+        if let Value::Boolean(value) = value {
+            return self.stack_push(Value::Boolean(!value));
+        }
+
+        panic!("Expected left to be boolean, instead got {:?}", value);
     }
 
     fn run_negate_operation(&mut self) {

@@ -29,6 +29,7 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
         OperationCode::SUBSTRACT => return handle_simple_instruction("SUBSTRACT", offset),
         OperationCode::MULTIPLY => return handle_simple_instruction("MULTIPLY", offset),
         OperationCode::DIVIDE => return handle_simple_instruction("DIVIDE", offset),
+        OperationCode::NOT => return handle_simple_instruction("NOT", offset),
         OperationCode::NEGATE => return handle_simple_instruction("NEGATE", offset),
         OperationCode::RETURN => return handle_simple_instruction("RETURN", offset),
         OperationCode::UNKNOW => println!("UNKNOW {:?}", instruction),
