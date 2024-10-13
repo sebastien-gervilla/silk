@@ -100,6 +100,13 @@ impl<'a> Compiler<'a> {
             "-" => self.chunk.add_operation(OperationCode::SUBSTRACT, expression.node.token.line),
             "*" => self.chunk.add_operation(OperationCode::MULTIPLY, expression.node.token.line),
             "/" => self.chunk.add_operation(OperationCode::DIVIDE, expression.node.token.line),
+            "==" => self.chunk.add_operation(OperationCode::EQUAL, expression.node.token.line),
+            "!=" => {
+                self.chunk.add_operation(OperationCode::NOT, expression.node.token.line);
+                self.chunk.add_operation(OperationCode::EQUAL, expression.node.token.line);
+            },
+            ">" => self.chunk.add_operation(OperationCode::GREATER, expression.node.token.line),
+            "<" => self.chunk.add_operation(OperationCode::LESS, expression.node.token.line),
             _ => todo!(),
         }
     }

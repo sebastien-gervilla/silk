@@ -68,6 +68,9 @@ impl<'a> VM<'a> {
                 OperationCode::SUBSTRACT => self.run_binary_operation(|a, b| a - b),
                 OperationCode::MULTIPLY => self.run_binary_operation(|a, b| a * b),
                 OperationCode::DIVIDE => self.run_binary_operation(|a, b| a / b),
+                OperationCode::EQUAL => self.run_equality_operation(|a, b| a == b),
+                OperationCode::GREATER => self.run_comparison_operation(|a, b| a > b),
+                OperationCode::LESS => self.run_comparison_operation(|a, b| a < b),
                 OperationCode::NOT => self.run_not_operation(),
                 OperationCode::NEGATE => self.run_negate_operation(),
                 OperationCode::CONSTANT => self.run_constant_operation(),
@@ -94,6 +97,32 @@ impl<'a> VM<'a> {
         if let Value::F64(a) = a {
             if let Value::F64(b) = b {
                 self.stack_push(Value::F64(operation(a, b)));
+            }
+
+            panic!("Expected right to be f64, instead got {:?}", b);
+        }
+
+        panic!("Expected left to be f64, instead got {:?}", a);
+    }
+
+    fn run_equality_operation(&mut self, operation: fn(Value, Value) -> bool) {
+        let b = self.stack_pop();
+        let a = self.stack_pop();
+
+        if !is_same_value_type(&a, &b) {
+            panic!("Type mismatch between {:?} and {:?}", a, b);
+        }
+
+        self.stack_push(Value::Boolean(operation(a, b)));
+    }
+
+    fn run_comparison_operation(&mut self, operation: fn(f64, f64) -> bool) {
+        let b = self.stack_pop();
+        let a = self.stack_pop();
+
+        if let Value::F64(a) = a {
+            if let Value::F64(b) = b {
+                self.stack_push(Value::Boolean(operation(a, b)));
             }
 
             panic!("Expected right to be f64, instead got {:?}", b);
@@ -136,4 +165,13 @@ impl<'a> VM<'a> {
         self.chunk.contants[byte as usize]
     }
 
+}
+
+fn is_same_value_type(a: &Value, b: &Value) -> bool {
+    match (a, b) {
+        (Value::Boolean(_), Value::Boolean(_)) => true,
+        (Value::F64(_), Value::F64(_)) => true,
+        (Value::Object(_), Value::Object(_)) => true,
+        _ => false,
+    }
 }

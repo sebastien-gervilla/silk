@@ -10,6 +10,9 @@ pub enum OperationCode {
     SUBSTRACT,
     MULTIPLY,
     DIVIDE,
+    EQUAL,
+    GREATER,
+    LESS,
     NOT,
     NEGATE,
     RETURN,
@@ -25,9 +28,12 @@ impl OperationCode {
             5 => OperationCode::SUBSTRACT,
             6 => OperationCode::MULTIPLY,
             7 => OperationCode::DIVIDE,
-            8 => OperationCode::NOT,
-            9 => OperationCode::NEGATE,
-            10 => OperationCode::RETURN,
+            8 => OperationCode::EQUAL,
+            9 => OperationCode::GREATER,
+            10 => OperationCode::LESS,
+            11 => OperationCode::NOT,
+            12 => OperationCode::NEGATE,
+            13 => OperationCode::RETURN,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW
