@@ -181,4 +181,17 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_assignment_expression() {
+        let code = String::from("
+            a = call();
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            b = a + b;
+        ");
+        test_parse(&code);
+    }
+
 }

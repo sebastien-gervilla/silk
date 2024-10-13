@@ -1,14 +1,32 @@
+use std::{env, fs};
+
 use silk::{
-    compiler::{bytecode::Chunk, vm::VM}, lexer::Lexer, token::TokenKind
+    compiler::{bytecode::Chunk, vm::VM, Compiler}, lexer::Lexer, token::TokenKind
 };
 
 fn main() {
 
-    let code = "3 + 3;";
+    let current_directory = match env::current_dir() {
+        Ok(path) => {
+            println!("\n\n=> Directory: {:?}", path.as_path());
+            path
+        },
+        Err(error) => panic!("Couldn't get current working directory : {error}"),
+    };
 
-    let mut chunk = Chunk::new();
+    let code_path = current_directory.join("tests/input.silk");
+
+    let code = match fs::read_to_string(code_path) {
+        Ok(code) => code,
+        Err(error) => panic!("Couldn't read code file : {error}"),
+    };
+
+    let mut chunk = &mut Chunk::new();
+    let mut compiler = Compiler::new(chunk);
+    chunk = compiler.compile(&code);
+
     let mut vm = VM::new(&mut chunk);
-    vm.interpret(code);
+    vm.run();
 }
 
 #[allow(dead_code)]
