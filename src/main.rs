@@ -1,7 +1,7 @@
 use std::{env, fs};
 
 use silk::{
-    compiler::{bytecode::Chunk, vm::VM}, lexer::Lexer, token::TokenKind
+    compiler::{bytecode::Chunk, vm::VM, Compiler}, lexer::Lexer, token::TokenKind
 };
 
 fn main() {
@@ -21,9 +21,12 @@ fn main() {
         Err(error) => panic!("Couldn't read code file : {error}"),
     };
 
-    let mut chunk = Chunk::new();
+    let mut chunk = &mut Chunk::new();
+    let mut compiler = Compiler::new(chunk);
+    chunk = compiler.compile(&code);
+
     let mut vm = VM::new(&mut chunk);
-    vm.interpret(&code);
+    vm.run();
 }
 
 #[allow(dead_code)]

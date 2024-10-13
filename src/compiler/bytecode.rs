@@ -30,13 +30,13 @@ impl OperationCode {
     }
 }
 
-pub struct Chunk {
+pub struct Chunk<'a> {
     pub code: Vec<u8>,
-    pub contants: Vec<Value>,
+    pub contants: Vec<Value<'a>>,
     pub lines: Vec<usize>,
 }
 
-impl Chunk {
+impl<'a> Chunk<'a> {
     pub fn new() -> Self {
         Self {
             code: vec![],
@@ -45,7 +45,7 @@ impl Chunk {
         }
     }
 
-    pub fn add_constant(&mut self, constant: Value, line: usize) {
+    pub fn add_constant(&mut self, constant: Value<'a>, line: usize) {
         self.add_operation(OperationCode::CONSTANT, line);
         self.contants.push(constant);
         self.add_instruction((self.contants.len() - 1) as u8, line);

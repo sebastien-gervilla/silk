@@ -11,14 +11,14 @@ pub enum InterpretationResult {
 }
 
 pub struct VM<'a> {
-    chunk: &'a mut Chunk,
+    chunk: &'a mut Chunk<'a>,
     ip: usize, // TODO: For the moment we use array indexing, but we may use pointer dereferencing instead of performance
-    stack: [Value; STACK_SIZE],
+    stack: [Value<'a>; STACK_SIZE],
     stack_top: usize,
 }
 
 impl<'a> VM<'a> {
-    pub fn new(chunk: &'a mut Chunk) -> Self {
+    pub fn new(chunk: &'a mut Chunk<'a>) -> Self {
         Self {
             chunk,
             ip: 0,
@@ -31,7 +31,7 @@ impl<'a> VM<'a> {
         self.stack = [Value::default(); STACK_SIZE];
     }
 
-    pub fn stack_push(&mut self, value: Value) {
+    pub fn stack_push(&mut self, value: Value<'a>) {
         if self.stack_top >= STACK_SIZE {
             panic!("Tried to push value {:?} to stack, but went out of bounds.", value);
         }
@@ -40,16 +40,9 @@ impl<'a> VM<'a> {
         self.stack_top += 1;
     }
 
-    pub fn stack_pop(&mut self) -> Value {
+    pub fn stack_pop(&mut self) -> Value<'a> {
         self.stack_top -= 1;
         self.stack[self.stack_top]
-    }
-
-    pub fn interpret(&mut self, source: &str) -> InterpretationResult {
-        let mut compiler = Compiler::new(&mut self.chunk);
-        compiler.compile(source);
-
-        self.run()
     }
 
     pub fn run(&mut self) -> InterpretationResult {
@@ -126,7 +119,7 @@ impl<'a> VM<'a> {
         self.chunk.code[self.ip - 1]
     }
 
-    fn read_constant(&mut self) -> Value {
+    fn read_constant(&mut self) -> Value<'a> {
         let byte = self.read_byte();
         self.chunk.contants[byte as usize]
     }

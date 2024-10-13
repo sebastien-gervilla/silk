@@ -13,20 +13,21 @@ pub mod bytecode;
 pub mod debug;
 pub mod value;
 pub mod vm;
+pub mod object;
 
 pub struct Compiler<'a> {
-    pub chunk: &'a mut Chunk,
+    pub chunk: &'a mut Chunk<'a>,
 }
 
 impl<'a> Compiler<'a> {
 
-    pub fn new(chunk: &'a mut Chunk) -> Self {
+    pub fn new(chunk: &'a mut Chunk<'a>) -> Self {
         Self {
             chunk,
         }
     }
 
-    pub fn compile(&mut self, source: &str) {
+    pub fn compile(&mut self, source: &str) -> &'a mut Chunk {
         let mut lexer = Lexer::new(source);
         let mut parser = Parser::new(&mut lexer);
 
@@ -37,6 +38,8 @@ impl<'a> Compiler<'a> {
         println!("Typechecking completed.");
 
         self.compile_file(&ast);
+
+        return self.chunk
     }
 
     fn compile_file(&mut self, file: &ast::File) {
