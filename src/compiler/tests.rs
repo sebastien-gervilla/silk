@@ -4,7 +4,7 @@ mod tests {
         bytecode::{
             Chunk,
             OperationCode
-        }, value::Value, vm::VM
+        }, value::Value, vm::VM, Compiler
     };
 
     #[test]
@@ -41,9 +41,12 @@ mod tests {
     // Compilation tests
 
     fn test_compilation(source: &str) {
-        let mut chunk = Chunk::new();
+        let mut chunk = &mut Chunk::new();
+        let mut compiler = Compiler::new(chunk);
+        chunk = compiler.compile(source);
+    
         let mut vm = VM::new(&mut chunk);
-        vm.interpret(source);
+        vm.run();
     }
 
     #[test]
