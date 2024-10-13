@@ -252,17 +252,26 @@ fn check_infix_expession(symbol_table: &SymbolTable, expression: &ast::InfixExpr
             if left_type != Type::Integer {
                 panic!("Type error: Expected type {:?}, got {:?} instead.", Type::Integer, left_type)
             }
+
+            if expected_type != Type::Integer {
+                panic!("Expected {:?}, instead got {:?}", expected_type, Type::Integer);
+            }
         },
-        "==" | "!=" | ">" | "<" => {
-            if left_type != Type::Boolean {
+        ">" | "<" => {
+            if left_type != Type::Integer {
                 panic!("Type error: Expected type {:?}, got {:?} instead.", Type::Integer, left_type)
+            }
+            
+            if expected_type != Type::Boolean {
+                panic!("Expected {:?}, instead got {:?}", expected_type, Type::Boolean);
+            }
+        },
+        "==" | "!=" => {
+            if expected_type != Type::Boolean {
+                panic!("Expected {:?}, instead got {:?}", expected_type, Type::Boolean);
             }
         },
         _ => panic!("Operator not supported.")
-    }
-
-    if expected_type != left_type {
-        panic!("Expected {:?}, instead got {:?}", expected_type, left_type);
     }
 }
 
