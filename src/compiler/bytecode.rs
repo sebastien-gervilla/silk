@@ -4,6 +4,8 @@ use super::value::Value;
 pub enum OperationCode {
     UNKNOW,
     CONSTANT,
+    TRUE,
+    FALSE,
     ADD,
     SUBSTRACT,
     MULTIPLY,
@@ -16,12 +18,14 @@ impl OperationCode {
     pub fn from_u8(value: u8) -> Self {
         match value {
             1 => OperationCode::CONSTANT,
-            2 => OperationCode::ADD,
-            3 => OperationCode::SUBSTRACT,
-            4 => OperationCode::MULTIPLY,
-            5 => OperationCode::DIVIDE,
-            6 => OperationCode::NEGATE,
-            7 => OperationCode::RETURN,
+            2 => OperationCode::TRUE,
+            3 => OperationCode::FALSE,
+            4 => OperationCode::ADD,
+            5 => OperationCode::SUBSTRACT,
+            6 => OperationCode::MULTIPLY,
+            7 => OperationCode::DIVIDE,
+            8 => OperationCode::NEGATE,
+            9 => OperationCode::RETURN,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW

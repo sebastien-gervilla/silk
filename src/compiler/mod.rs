@@ -62,10 +62,22 @@ impl<'a> Compiler<'a> {
             ast::Expression::NumberLiteral(literal) => {
                 self.chunk.add_constant(Value::F64(literal.value as f64), literal.node.token.line);
             },
+            ast::Expression::BooleanLiteral(literal) => self.compile_boolean_literal(literal),
             ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
             _ => todo!()
         }
+    }
+
+    fn compile_boolean_literal(&mut self, literal: &ast::BooleanLiteral) {
+        self.chunk.add_operation(
+            if literal.value {
+                OperationCode::TRUE
+            } else {
+                OperationCode::FALSE
+            }, 
+            literal.node.token.line
+        );
     }
 
     fn compile_prefix_expression(&mut self, expression: &ast::PrefixExpression) {

@@ -23,6 +23,8 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
 
     match instruction {
         OperationCode::CONSTANT => return handle_constant_instruction(chunk, offset),
+        OperationCode::TRUE => return handle_simple_instruction("TRUE", offset),
+        OperationCode::FALSE => return handle_simple_instruction("FALSE", offset),
         OperationCode::ADD => return handle_simple_instruction("ADD", offset),
         OperationCode::SUBSTRACT => return handle_simple_instruction("SUBSTRACT", offset),
         OperationCode::MULTIPLY => return handle_simple_instruction("MULTIPLY", offset),

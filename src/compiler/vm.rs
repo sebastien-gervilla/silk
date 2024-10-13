@@ -62,6 +62,8 @@ impl<'a> VM<'a> {
                     println!("RETURN {:?}", self.stack_pop());
                     return InterpretationResult::OK
                 },
+                OperationCode::TRUE => self.stack_push(Value::Boolean(true)),
+                OperationCode::FALSE => self.stack_push(Value::Boolean(false)),
                 OperationCode::ADD => self.run_binary_operation(|a, b| a + b),
                 OperationCode::SUBSTRACT => self.run_binary_operation(|a, b| a - b),
                 OperationCode::MULTIPLY => self.run_binary_operation(|a, b| a * b),
