@@ -170,6 +170,11 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
                 panic!("Expected {:?}, instead got {:?}", expected_type, Type::Boolean);
             }
         },
+        ast::Expression::StringLiteral(_) => {
+            if expected_type != Type::String {
+                panic!("Expected {:?}, instead got {:?}", expected_type, Type::String);
+            }
+        },
         ast::Expression::Function(function) => check_function(symbol_table, function),
         ast::Expression::Prefix(expression) => check_prefix_expession(symbol_table, expression, expected_type),
         ast::Expression::Infix(expression) => check_infix_expession(symbol_table, expression, expected_type),
@@ -359,6 +364,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::Identifier(identifier) => synthesize_identifier(symbol_table, identifier),
         ast::Expression::NumberLiteral(_) => Type::Integer,
         ast::Expression::BooleanLiteral(_) => Type::Boolean,
+        ast::Expression::StringLiteral(_) => Type::String,
         ast::Expression::Function(_) => Type::Void,
         ast::Expression::Prefix(expression) => synthesize_prefix_expression(expression),
         ast::Expression::Infix(expression) => synthesize_infix_expression(expression),
