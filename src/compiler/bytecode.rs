@@ -1,6 +1,7 @@
 use super::value::Value;
 
 #[derive(Debug, Clone, Copy)]
+#[allow(non_camel_case_types)]
 pub enum OperationCode {
     UNKNOW,
     CONSTANT,
@@ -10,7 +11,8 @@ pub enum OperationCode {
     SUBSTRACT,
     MULTIPLY,
     DIVIDE,
-    EQUAL,
+    EQUALS,
+    NOT_EQUALS,
     GREATER,
     LESS,
     NOT,
@@ -28,12 +30,13 @@ impl OperationCode {
             5 => OperationCode::SUBSTRACT,
             6 => OperationCode::MULTIPLY,
             7 => OperationCode::DIVIDE,
-            8 => OperationCode::EQUAL,
-            9 => OperationCode::GREATER,
-            10 => OperationCode::LESS,
-            11 => OperationCode::NOT,
-            12 => OperationCode::NEGATE,
-            13 => OperationCode::RETURN,
+            8 => OperationCode::EQUALS,
+            9 => OperationCode::NOT_EQUALS,
+            10 => OperationCode::GREATER,
+            11 => OperationCode::LESS,
+            12 => OperationCode::NOT,
+            13 => OperationCode::NEGATE,
+            14 => OperationCode::RETURN,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW
