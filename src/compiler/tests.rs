@@ -79,4 +79,13 @@ mod tests {
         ");
     }
 
+    #[test]
+    fn test_compile_equality() {
+        println!("\n======== Testing equality ========\n");
+        test_compilation("
+            2 == 2;
+            2 != 2;
+        ");
+    }
+
 }

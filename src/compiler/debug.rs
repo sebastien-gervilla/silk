@@ -23,10 +23,17 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
 
     match instruction {
         OperationCode::CONSTANT => return handle_constant_instruction(chunk, offset),
+        OperationCode::TRUE => return handle_simple_instruction("TRUE", offset),
+        OperationCode::FALSE => return handle_simple_instruction("FALSE", offset),
         OperationCode::ADD => return handle_simple_instruction("ADD", offset),
         OperationCode::SUBSTRACT => return handle_simple_instruction("SUBSTRACT", offset),
         OperationCode::MULTIPLY => return handle_simple_instruction("MULTIPLY", offset),
         OperationCode::DIVIDE => return handle_simple_instruction("DIVIDE", offset),
+        OperationCode::EQUALS => return handle_simple_instruction("EQUALS", offset),
+        OperationCode::NOT_EQUALS => return handle_simple_instruction("NOT_EQUALS", offset),
+        OperationCode::GREATER => return handle_simple_instruction("GREATER", offset),
+        OperationCode::LESS => return handle_simple_instruction("LESS", offset),
+        OperationCode::NOT => return handle_simple_instruction("NOT", offset),
         OperationCode::NEGATE => return handle_simple_instruction("NEGATE", offset),
         OperationCode::RETURN => return handle_simple_instruction("RETURN", offset),
         OperationCode::UNKNOW => println!("UNKNOW {:?}", instruction),

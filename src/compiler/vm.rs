@@ -1,4 +1,4 @@
-use super::{bytecode::{Chunk, OperationCode}, debug::disassemble_instruction, value::Value, Compiler};
+use super::{bytecode::{Chunk, OperationCode}, debug::disassemble_instruction, value::Value};
 
 const STACK_SIZE: usize = 256;
 
@@ -62,10 +62,17 @@ impl<'a> VM<'a> {
                     println!("RETURN {:?}", self.stack_pop());
                     return InterpretationResult::OK
                 },
+                OperationCode::TRUE => self.stack_push(Value::Boolean(true)),
+                OperationCode::FALSE => self.stack_push(Value::Boolean(false)),
                 OperationCode::ADD => self.run_binary_operation(|a, b| a + b),
                 OperationCode::SUBSTRACT => self.run_binary_operation(|a, b| a - b),
                 OperationCode::MULTIPLY => self.run_binary_operation(|a, b| a * b),
                 OperationCode::DIVIDE => self.run_binary_operation(|a, b| a / b),
+                OperationCode::EQUALS => self.run_equality_operation(|a, b| a == b),
+                OperationCode::NOT_EQUALS => self.run_equality_operation(|a, b| a != b),
+                OperationCode::GREATER => self.run_comparison_operation(|a, b| a > b),
+                OperationCode::LESS => self.run_comparison_operation(|a, b| a < b),
+                OperationCode::NOT => self.run_not_operation(),
                 OperationCode::NEGATE => self.run_negate_operation(),
                 OperationCode::CONSTANT => self.run_constant_operation(),
                 OperationCode::UNKNOW => panic!("Unknow instruction")
@@ -99,6 +106,41 @@ impl<'a> VM<'a> {
         panic!("Expected left to be f64, instead got {:?}", a);
     }
 
+    fn run_equality_operation(&mut self, operation: fn(Value, Value) -> bool) {
+        let b = self.stack_pop();
+        let a = self.stack_pop();
+
+        if !is_same_value_type(&a, &b) {
+            panic!("Type mismatch between {:?} and {:?}", a, b);
+        }
+
+        self.stack_push(Value::Boolean(operation(a, b)));
+    }
+
+    fn run_comparison_operation(&mut self, operation: fn(f64, f64) -> bool) {
+        let b = self.stack_pop();
+        let a = self.stack_pop();
+
+        if let Value::F64(a) = a {
+            if let Value::F64(b) = b {
+                self.stack_push(Value::Boolean(operation(a, b)));
+            }
+
+            panic!("Expected right to be f64, instead got {:?}", b);
+        }
+
+        panic!("Expected left to be f64, instead got {:?}", a);
+    }
+
+    fn run_not_operation(&mut self) {
+        let value = self.stack_pop();
+        if let Value::Boolean(value) = value {
+            return self.stack_push(Value::Boolean(!value));
+        }
+
+        panic!("Expected left to be boolean, instead got {:?}", value);
+    }
+
     fn run_negate_operation(&mut self) {
         let value = self.stack_pop();
         if let Value::F64(value) = value {
@@ -124,4 +166,13 @@ impl<'a> VM<'a> {
         self.chunk.contants[byte as usize]
     }
 
+}
+
+fn is_same_value_type(a: &Value, b: &Value) -> bool {
+    match (a, b) {
+        (Value::Boolean(_), Value::Boolean(_)) => true,
+        (Value::F64(_), Value::F64(_)) => true,
+        (Value::Object(_), Value::Object(_)) => true,
+        _ => false,
+    }
 }
