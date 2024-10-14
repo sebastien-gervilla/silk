@@ -26,6 +26,18 @@ mod tests {
     }
 
     #[test]
+    fn test_typecheck_literals() {
+        let code = "123;";
+        test_typecheck(code);
+
+        let code = "true;";
+        test_typecheck(code);
+
+        let code = "\"string\";";
+        test_typecheck(code);
+    }
+
+    #[test]
     #[should_panic]
     fn test_typecheck_operation_different_types() {
         // Same type - Wrong Type
