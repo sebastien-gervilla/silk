@@ -1,7 +1,10 @@
-#[derive(Debug, Clone, Copy)]
+use super::object::Object;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Value<'a> {
     F64(f64),
     Boolean(bool),
+    Object(&'a Object),
 }
 
 impl<'a> Default for Value<'a> {

@@ -62,16 +62,29 @@ impl<'a> Compiler<'a> {
             ast::Expression::NumberLiteral(literal) => {
                 self.chunk.add_constant(Value::F64(literal.value as f64), literal.node.token.line);
             },
+            ast::Expression::BooleanLiteral(literal) => self.compile_boolean_literal(literal),
             ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
             _ => todo!()
         }
     }
 
+    fn compile_boolean_literal(&mut self, literal: &ast::BooleanLiteral) {
+        self.chunk.add_operation(
+            if literal.value {
+                OperationCode::TRUE
+            } else {
+                OperationCode::FALSE
+            }, 
+            literal.node.token.line
+        );
+    }
+
     fn compile_prefix_expression(&mut self, expression: &ast::PrefixExpression) {
         self.compile_expression(&expression.expression);
 
         match expression.operator.as_str() {
+            "!" => self.chunk.add_operation(OperationCode::NOT, expression.node.token.line),
             "-" => self.chunk.add_operation(OperationCode::NEGATE, expression.node.token.line),
             _ => todo!()
         }
@@ -87,6 +100,10 @@ impl<'a> Compiler<'a> {
             "-" => self.chunk.add_operation(OperationCode::SUBSTRACT, expression.node.token.line),
             "*" => self.chunk.add_operation(OperationCode::MULTIPLY, expression.node.token.line),
             "/" => self.chunk.add_operation(OperationCode::DIVIDE, expression.node.token.line),
+            "==" => self.chunk.add_operation(OperationCode::EQUALS, expression.node.token.line),
+            "!=" => self.chunk.add_operation(OperationCode::NOT_EQUALS, expression.node.token.line),
+            ">" => self.chunk.add_operation(OperationCode::GREATER, expression.node.token.line),
+            "<" => self.chunk.add_operation(OperationCode::LESS, expression.node.token.line),
             _ => todo!(),
         }
     }
