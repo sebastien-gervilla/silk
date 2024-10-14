@@ -1,16 +1,16 @@
 use super::object::Object;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Value<'a> {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Value {
     F64(f64),
     Boolean(bool),
-    Object(&'a Object),
+    Object(Object),
 }
 
-impl<'a> Default for Value<'a> {
+impl Default for Value {
     fn default() -> Self {
         Value::F64(0.0)
     }
 }
 
-pub type Values<'a> = Vec<Value<'a>>;
+pub type Values = Vec<Value>;
