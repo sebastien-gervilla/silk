@@ -98,6 +98,7 @@ impl<'a> Compiler<'a> {
 
     fn compile_expression(&mut self, expression: &ast::Expression) {
         match expression {
+            ast::Expression::Identifier(identifier) => self.compile_identifier(identifier),
             ast::Expression::NumberLiteral(literal) => {
                 self.chunk.add_constant(Value::F64(literal.value as f64), literal.node.token.line);
             },
@@ -107,6 +108,18 @@ impl<'a> Compiler<'a> {
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
             ast::Expression::Block(expression) => self.compile_block_expression(expression),
             _ => todo!()
+        }
+    }
+
+    fn compile_identifier(&mut self, identifier: &ast::Identifier) {
+        let variable_index = self.get_local_variable_index(&identifier.value);
+
+        match variable_index {
+            Some(index) => {
+                self.chunk.add_operation(OperationCode::GET_LOCAL, identifier.node.token.line);
+                self.chunk.add_instruction(index as u8, identifier.node.token.line);
+            },
+            None => todo!() // TODO: We could assume this is a global variable if we support it.
         }
     }
 
