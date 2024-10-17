@@ -1,3 +1,5 @@
+use std::array;
+
 use super::{bytecode::{Chunk, OperationCode}, debug::disassemble_instruction, value::Value};
 
 const STACK_SIZE: usize = 256;
@@ -11,27 +13,27 @@ pub enum InterpretationResult {
 }
 
 pub struct VM<'a> {
-    chunk: &'a mut Chunk<'a>,
+    chunk: &'a mut Chunk,
     ip: usize, // TODO: For the moment we use array indexing, but we may use pointer dereferencing instead of performance
-    stack: [Value<'a>; STACK_SIZE],
+    stack: [Value; STACK_SIZE],
     stack_top: usize,
 }
 
 impl<'a> VM<'a> {
-    pub fn new(chunk: &'a mut Chunk<'a>) -> Self {
+    pub fn new(chunk: &'a mut Chunk) -> Self {
         Self {
             chunk,
             ip: 0,
-            stack: [Value::default(); STACK_SIZE],
+            stack: array::from_fn(|_| Value::F64(0.0)),
             stack_top: 0,
         }
     }
 
     pub fn reset_stack(&mut self) {
-        self.stack = [Value::default(); STACK_SIZE];
+        self.stack = array::from_fn(|_| Value::F64(0.0))
     }
 
-    pub fn stack_push(&mut self, value: Value<'a>) {
+    pub fn stack_push(&mut self, value: Value) {
         if self.stack_top >= STACK_SIZE {
             panic!("Tried to push value {:?} to stack, but went out of bounds.", value);
         }
@@ -40,9 +42,9 @@ impl<'a> VM<'a> {
         self.stack_top += 1;
     }
 
-    pub fn stack_pop(&mut self) -> Value<'a> {
+    pub fn stack_pop(&mut self) -> Value {
         self.stack_top -= 1;
-        self.stack[self.stack_top]
+        self.stack[self.stack_top].clone()
     }
 
     pub fn run(&mut self) -> InterpretationResult {
@@ -152,8 +154,8 @@ impl<'a> VM<'a> {
 
     fn run_constant_operation(&mut self) {
         let constant = self.read_constant();
-        self.stack_push(constant);
         println!("PUSHED {:?}", constant);
+        self.stack_push(constant);
     }
 
     fn read_byte(&mut self) -> u8 {
@@ -161,9 +163,9 @@ impl<'a> VM<'a> {
         self.chunk.code[self.ip - 1]
     }
 
-    fn read_constant(&mut self) -> Value<'a> {
+    fn read_constant(&mut self) -> Value {
         let byte = self.read_byte();
-        self.chunk.contants[byte as usize]
+        self.chunk.contants[byte as usize].clone()
     }
 
 }

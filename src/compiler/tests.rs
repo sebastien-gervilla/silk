@@ -50,6 +50,14 @@ mod tests {
     }
 
     #[test]
+    fn test_compile_literals() {
+        println!("\n======== Testing literals ========\n");
+        test_compilation("22;");
+        test_compilation("\"string\";");
+        test_compilation("true;");
+    }
+
+    #[test]
     fn test_compile_operations() {
         println!("\n======== Testing addition ========\n");
         test_compilation("3 + 22;");

@@ -1,4 +1,5 @@
 use bytecode::{Chunk, OperationCode};
+use object::{Object, StringObject};
 use value::Value;
 
 use crate::{
@@ -16,18 +17,18 @@ pub mod vm;
 pub mod object;
 
 pub struct Compiler<'a> {
-    pub chunk: &'a mut Chunk<'a>,
+    pub chunk: &'a mut Chunk,
 }
 
 impl<'a> Compiler<'a> {
 
-    pub fn new(chunk: &'a mut Chunk<'a>) -> Self {
+    pub fn new(chunk: &'a mut Chunk) -> Self {
         Self {
             chunk,
         }
     }
 
-    pub fn compile(&mut self, source: &str) -> &'a mut Chunk {
+    pub fn compile(&mut self, source: &str) -> &mut Chunk {
         let mut lexer = Lexer::new(source);
         let mut parser = Parser::new(&mut lexer);
 
@@ -63,10 +64,25 @@ impl<'a> Compiler<'a> {
                 self.chunk.add_constant(Value::F64(literal.value as f64), literal.node.token.line);
             },
             ast::Expression::BooleanLiteral(literal) => self.compile_boolean_literal(literal),
+            ast::Expression::StringLiteral(literal) => self.compile_string_literal(literal),
             ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
             _ => todo!()
         }
+    }
+
+    fn compile_string_literal(&mut self, literal: &ast::StringLiteral) {
+        let string_object = StringObject {
+            length: literal.value.len(),
+            value: literal.value.clone()
+        };
+        
+        self.chunk.add_constant(
+            Value::Object(
+                Object::String(string_object)
+            ), 
+            literal.node.token.line
+        );
     }
 
     fn compile_boolean_literal(&mut self, literal: &ast::BooleanLiteral) {
