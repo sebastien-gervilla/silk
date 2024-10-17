@@ -84,6 +84,7 @@ impl<'a> VM<'a> {
                 OperationCode::GET_LOCAL => self.run_get_local_operation(),
                 OperationCode::SET_LOCAL => self.run_set_local_operation(),
                 OperationCode::UNKNOW => panic!("Unknow instruction")
+                OperationCode::POP => { self.stack_pop(); },
             };
 
             if self.ip >= self.chunk.code.len() {

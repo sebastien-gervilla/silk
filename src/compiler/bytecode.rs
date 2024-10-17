@@ -20,6 +20,7 @@ pub enum OperationCode {
     SET_LOCAL,
     GET_LOCAL,
     RETURN,
+    POP,
 }
 
 impl OperationCode {
@@ -41,6 +42,7 @@ impl OperationCode {
             14 => OperationCode::SET_LOCAL,
             15 => OperationCode::GET_LOCAL,
             16 => OperationCode::RETURN,
+            19 => OperationCode::POP,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW
