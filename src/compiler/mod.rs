@@ -1,3 +1,5 @@
+use std::array;
+
 use bytecode::{Chunk, OperationCode};
 use object::{Object, StringObject};
 use value::Value;
@@ -16,8 +18,20 @@ pub mod value;
 pub mod vm;
 pub mod object;
 
+const LOCALS_SIZE: usize = 256;
+
 pub struct Compiler<'a> {
     pub chunk: &'a mut Chunk,
+    pub locals: [Option<Local>; LOCALS_SIZE],
+    pub locals_count: usize,
+    pub depth: usize,
+}
+
+#[derive(Debug)]
+pub struct Local {
+    pub name: String,
+    pub depth: usize,
+    pub is_initialized: bool,
 }
 
 impl<'a> Compiler<'a> {
@@ -25,6 +39,9 @@ impl<'a> Compiler<'a> {
     pub fn new(chunk: &'a mut Chunk) -> Self {
         Self {
             chunk,
+            locals: array::from_fn(|_| None),
+            locals_count: 0,
+            depth: 0,
         }
     }
 
