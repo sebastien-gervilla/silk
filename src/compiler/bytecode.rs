@@ -17,6 +17,8 @@ pub enum OperationCode {
     LESS,
     NOT,
     NEGATE,
+    SET_LOCAL,
+    GET_LOCAL,
     RETURN,
 }
 
@@ -36,7 +38,9 @@ impl OperationCode {
             11 => OperationCode::LESS,
             12 => OperationCode::NOT,
             13 => OperationCode::NEGATE,
-            14 => OperationCode::RETURN,
+            14 => OperationCode::SET_LOCAL,
+            15 => OperationCode::GET_LOCAL,
+            16 => OperationCode::RETURN,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW

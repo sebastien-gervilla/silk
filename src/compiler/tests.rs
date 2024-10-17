@@ -96,4 +96,15 @@ mod tests {
         ");
     }
 
+    #[test]
+    fn test_compile_block() {
+        println!("\n======== Testing block ========\n");
+        test_compilation("
+            {
+                let x = 2;
+                x + 2;
+            }
+        ");
+    }
+
 }

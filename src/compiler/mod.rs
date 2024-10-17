@@ -68,10 +68,31 @@ impl<'a> Compiler<'a> {
 
     fn compile_statement(&mut self, statement: &ast::Statement) {
         match statement {
+            ast::Statement::Let(let_statement) => self.compile_let_statement(let_statement),
             ast::Statement::Expression(expression_statement) => {
                 self.compile_expression(&expression_statement.expression);
             },
-            _ => todo!()
+        }
+    }
+
+    fn compile_let_statement(&mut self, statement: &ast::LetStatement) {
+        if self.depth <= 0 {
+            return;
+        }
+
+        let index = self.declare_local_variable(&statement.identifier);
+
+        match &statement.expression {
+            Some(expression) => self.compile_expression(expression.as_ref()),
+            None => todo!(),
+        }
+
+        self.chunk.add_operation(OperationCode::SET_LOCAL, statement.node.token.line);
+        self.chunk.add_instruction(index as u8, statement.node.token.line);
+
+        match &mut self.locals[index] {
+            Some(local) => local.is_initialized = true,
+            None => panic!("Local variable not found after initialization"),
         }
     }
 
@@ -150,6 +171,45 @@ impl<'a> Compiler<'a> {
         }
 
         self.depth -= 1;
+    }
+
+    // Utils
+
+    fn declare_local_variable(&mut self, identifier: &ast::Identifier) -> usize {
+
+        if self.locals_count >= LOCALS_SIZE {
+            panic!("Exceeded locals variable count");
+        }
+
+        self.locals[self.locals_count] = Some(
+            Local {
+                name: identifier.value.clone(),
+                depth: self.depth,
+                is_initialized: false,
+            }
+        );
+
+        self.locals_count += 1;
+
+        return self.locals_count - 1
+    }
+
+    fn get_local_variable_index(&mut self, name: &str) -> Option<usize> {
+        for index in (0..self.locals_count).rev() {
+            println!("{index}");
+            let local_option = &self.locals[index];
+            if let Some(local) = local_option {
+                if local.name == name {
+                    if !local.is_initialized {
+                        panic!("Can't read local variable in its own initializer")
+                    }
+
+                    return Some(index)
+                }
+            }
+        }
+
+        return None
     }
 
 }
