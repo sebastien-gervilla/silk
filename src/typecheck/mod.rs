@@ -272,7 +272,7 @@ fn check_infix_expession(symbol_table: &SymbolTable, expression: &ast::InfixExpr
                 panic!("Expected {:?}, instead got {:?}", expected_type, Type::Boolean);
             }
         },
-        "==" | "!=" => {
+        "==" | "!=" | "&&" | "||" => {
             if expected_type != Type::Boolean {
                 panic!("Expected {:?}, instead got {:?}", expected_type, Type::Boolean);
             }
@@ -414,6 +414,7 @@ fn synthesize_infix_expression(expression: &ast::InfixExpression) -> Type {
     match expression.operator.as_str() {
         "+" | "-" | "*" | "/" => Type::Integer,
         "==" | "!=" | ">" | "<" => Type::Boolean,
+        "&&" | "||" => Type::Boolean,
         operator => panic!("Invalid operator {:?} found", operator),
     }
 }
