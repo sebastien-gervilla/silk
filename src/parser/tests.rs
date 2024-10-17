@@ -75,6 +75,15 @@ mod tests {
         let code = String::from("8 < 93;");
         test_parse(&code);
     }
+    
+    #[test]
+    fn test_parse_logical_operator() {
+        let code = String::from("true && !false;");
+        test_parse(&code);
+
+        let code = String::from("y || !x;");
+        test_parse(&code);
+    }
 
     #[test]
     fn test_parse_group_expression() {
