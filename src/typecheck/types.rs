@@ -5,6 +5,7 @@ pub enum Type {
     Void,
     Integer,
     Boolean,
+    String,
     Function(Vec<Type>, Box<Type>)
 }
 

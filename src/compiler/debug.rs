@@ -23,12 +23,24 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
 
     match instruction {
         OperationCode::CONSTANT => return handle_constant_instruction(chunk, offset),
+        OperationCode::TRUE => return handle_simple_instruction("TRUE", offset),
+        OperationCode::FALSE => return handle_simple_instruction("FALSE", offset),
         OperationCode::ADD => return handle_simple_instruction("ADD", offset),
         OperationCode::SUBSTRACT => return handle_simple_instruction("SUBSTRACT", offset),
         OperationCode::MULTIPLY => return handle_simple_instruction("MULTIPLY", offset),
         OperationCode::DIVIDE => return handle_simple_instruction("DIVIDE", offset),
+        OperationCode::EQUALS => return handle_simple_instruction("EQUALS", offset),
+        OperationCode::NOT_EQUALS => return handle_simple_instruction("NOT_EQUALS", offset),
+        OperationCode::GREATER => return handle_simple_instruction("GREATER", offset),
+        OperationCode::LESS => return handle_simple_instruction("LESS", offset),
+        OperationCode::NOT => return handle_simple_instruction("NOT", offset),
         OperationCode::NEGATE => return handle_simple_instruction("NEGATE", offset),
+        OperationCode::SET_LOCAL => return handle_byte_instruction("SET_LOCAL", chunk, offset),
+        OperationCode::GET_LOCAL => return handle_byte_instruction("GET_LOCAL", chunk, offset),
+        OperationCode::JUMP => return handle_jump_instruction("JUMP", chunk, offset, 1),
+        OperationCode::JUMP_IF_FALSE => return handle_jump_instruction("JUMP_IF_FALSE", chunk, offset, 1),
         OperationCode::RETURN => return handle_simple_instruction("RETURN", offset),
+        OperationCode::POP => return handle_simple_instruction("POP", offset),
         OperationCode::UNKNOW => println!("UNKNOW {:?}", instruction),
     }
 
@@ -40,14 +52,29 @@ fn handle_simple_instruction(name: &str, offset: usize) -> usize {
     return offset + 1
 }
 
+fn handle_byte_instruction(name: &str, chunk: &Chunk, offset: usize) -> usize {
+    let slot = chunk.code[offset + 1];
+    println!("{} {}", name, slot);
+    return offset + 2
+}
+
 fn handle_constant_instruction(chunk: &Chunk, offset: usize) -> usize {
     let constant_index = chunk.code[offset + 1];
     
     println!(
-        "CONSTANT (VALUE: {}, index: {}) ", 
+        "CONSTANT (VALUE: {:?}, index: {}) ", 
         chunk.contants[constant_index as usize], 
         constant_index
     );
 
     return offset + 2
+}
+
+fn handle_jump_instruction(name: &str, chunk: &Chunk, offset: usize, sign: usize) -> usize {
+    let mut jump = (chunk.code[offset + 1] as u16) << 8;
+
+    jump |= chunk.code[offset + 2] as u16;
+
+    println!("- {} {} -> {}", name, offset, offset + 3 + sign * (jump as usize));
+    return offset + 3
 }

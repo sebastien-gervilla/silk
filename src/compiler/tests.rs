@@ -4,8 +4,7 @@ mod tests {
         bytecode::{
             Chunk,
             OperationCode
-        },
-        vm::VM
+        }, value::Value, vm::VM, Compiler
     };
 
     #[test]
@@ -14,16 +13,16 @@ mod tests {
         let mut chunk = Chunk::new();
 
         // CONSTANT 1.5
-        chunk.add_constant(1.5, 1);
+        chunk.add_constant(Value::F64(1.5), 1);
 
         // CONSTANT 2.5
-        chunk.add_constant(2.5, 1);
+        chunk.add_constant(Value::F64(2.5), 1);
 
         // ADD => 4
         chunk.add_operation(OperationCode::ADD, 1);
 
         // CONSTANT 4
-        chunk.add_constant(4.0, 1);
+        chunk.add_constant(Value::F64(4.5), 1);
 
         // DIVIDE => 1
         chunk.add_operation(OperationCode::DIVIDE, 1);
@@ -42,9 +41,20 @@ mod tests {
     // Compilation tests
 
     fn test_compilation(source: &str) {
-        let mut chunk = Chunk::new();
+        let mut chunk = &mut Chunk::new();
+        let mut compiler = Compiler::new(chunk);
+        chunk = compiler.compile(source);
+    
         let mut vm = VM::new(&mut chunk);
-        vm.interpret(source);
+        vm.run();
+    }
+
+    #[test]
+    fn test_compile_literals() {
+        println!("\n======== Testing literals ========\n");
+        test_compilation("22;");
+        test_compilation("\"string\";");
+        test_compilation("true;");
     }
 
     #[test]
@@ -74,6 +84,46 @@ mod tests {
         test_compilation("
             2 + 2;
             2 / 2;
+        ");
+    }
+
+    #[test]
+    fn test_compile_equality() {
+        println!("\n======== Testing equality ========\n");
+        test_compilation("
+            2 == 2;
+            2 != 2;
+        ");
+    }
+
+    #[test]
+    fn test_compile_block() {
+        println!("\n======== Testing block ========\n");
+        test_compilation("
+            {
+                let x = 2;
+                x + 2;
+            }
+        ");
+    }
+
+    #[test]
+    fn test_compile_if_expression() {
+        println!("\n======== Testing if expression ========\n");
+        test_compilation("
+            if true {
+                false;
+            };
+        ");
+
+        test_compilation("
+            if false {
+                true;
+            } else {
+                if 2 > 1 {
+                    false;
+                };
+            };
         ");
     }
 
