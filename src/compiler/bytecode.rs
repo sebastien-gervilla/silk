@@ -19,6 +19,8 @@ pub enum OperationCode {
     NEGATE,
     SET_LOCAL,
     GET_LOCAL,
+    JUMP,
+    JUMP_IF_FALSE,
     RETURN,
     POP,
 }
@@ -41,7 +43,9 @@ impl OperationCode {
             13 => OperationCode::NEGATE,
             14 => OperationCode::SET_LOCAL,
             15 => OperationCode::GET_LOCAL,
-            16 => OperationCode::RETURN,
+            16 => OperationCode::JUMP,
+            17 => OperationCode::JUMP_IF_FALSE,
+            18 => OperationCode::RETURN,
             19 => OperationCode::POP,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
@@ -81,4 +85,25 @@ impl Chunk {
         self.code.push(operation as u8);
         self.lines.push(line);
     }
+
+    pub fn add_jump(&mut self, operation: OperationCode, line: usize) -> usize {
+        self.add_operation(operation, line);
+        self.add_instruction(u8::MAX, line);
+        self.add_instruction(u8::MAX, line);
+        return self.code.len() - 2
+    }
+
+    pub fn patch_jump(&mut self, offset: usize) {
+        // -2 is for the 2 u8 placeholders
+        println!("{}-{}", self.code.len(), offset);
+        let jump = self.code.len() - offset - 2;
+
+        if jump > u16::MAX as usize {
+            panic!("Cannot jump over that much code");
+        }
+
+        self.code[offset] = ((jump >> 8) as u8) & u8::MAX;
+        self.code[offset + 1] = jump as u8 & u8::MAX;
+    }
+
 }

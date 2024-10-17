@@ -83,8 +83,10 @@ impl<'a> VM<'a> {
                 OperationCode::CONSTANT => self.run_constant_operation(),
                 OperationCode::GET_LOCAL => self.run_get_local_operation(),
                 OperationCode::SET_LOCAL => self.run_set_local_operation(),
-                OperationCode::UNKNOW => panic!("Unknow instruction")
+                OperationCode::JUMP => self.run_jump_operation(),
+                OperationCode::JUMP_IF_FALSE => self.run_jump_if_false_operation(),
                 OperationCode::POP => { self.stack_pop(); },
+                OperationCode::UNKNOW => panic!("Unknow instruction"),
             };
 
             if self.ip >= self.chunk.code.len() {
@@ -176,6 +178,25 @@ impl<'a> VM<'a> {
         self.stack[slot as usize] = self.stack_peek(0);
     }
 
+    fn run_jump_operation(&mut self) {
+        let offset = self.read_short();
+        self.ip += offset as usize;
+    }
+
+    fn run_jump_if_false_operation(&mut self) {
+        let offset = self.read_short();
+        let condition_value = self.stack_peek(0);
+
+        match condition_value {
+            Value::Boolean(condition) => {
+                if !condition {
+                    return self.ip += offset as usize
+                }
+            },
+            _ => panic!("Expected condition to be bool, instead got {:?}", condition_value)
+        }
+    }
+
     // Utils
 
     fn read_byte(&mut self) -> u8 {
@@ -186,6 +207,12 @@ impl<'a> VM<'a> {
     fn read_constant(&mut self) -> Value {
         let byte = self.read_byte();
         self.chunk.contants[byte as usize].clone()
+    }
+
+    fn read_short(&mut self) -> u16 {
+        let value = ((self.chunk.code[self.ip] as u16) << 8) | (self.chunk.code[self.ip + 1] as u16);
+        self.ip += 2;
+        return value
     }
 
 }
