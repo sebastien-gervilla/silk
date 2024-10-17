@@ -47,6 +47,10 @@ impl<'a> VM<'a> {
         self.stack[self.stack_top].clone()
     }
 
+    pub fn stack_peek(&mut self, distance: usize) -> Value {
+        return self.stack[self.stack_top - distance - 1].clone()
+    }
+
     pub fn run(&mut self) -> InterpretationResult {
         loop {
             #[cfg(feature = "debug_trace_execution")]
@@ -77,7 +81,12 @@ impl<'a> VM<'a> {
                 OperationCode::NOT => self.run_not_operation(),
                 OperationCode::NEGATE => self.run_negate_operation(),
                 OperationCode::CONSTANT => self.run_constant_operation(),
-                OperationCode::UNKNOW => panic!("Unknow instruction")
+                OperationCode::GET_LOCAL => self.run_get_local_operation(),
+                OperationCode::SET_LOCAL => self.run_set_local_operation(),
+                OperationCode::JUMP => self.run_jump_operation(),
+                OperationCode::JUMP_IF_FALSE => self.run_jump_if_false_operation(),
+                OperationCode::POP => { self.stack_pop(); },
+                OperationCode::UNKNOW => panic!("Unknow instruction"),
             };
 
             if self.ip >= self.chunk.code.len() {
@@ -99,7 +108,7 @@ impl<'a> VM<'a> {
 
         if let Value::F64(a) = a {
             if let Value::F64(b) = b {
-                self.stack_push(Value::F64(operation(a, b)));
+                return self.stack_push(Value::F64(operation(a, b)));
             }
 
             panic!("Expected right to be f64, instead got {:?}", b);
@@ -125,7 +134,7 @@ impl<'a> VM<'a> {
 
         if let Value::F64(a) = a {
             if let Value::F64(b) = b {
-                self.stack_push(Value::Boolean(operation(a, b)));
+                return self.stack_push(Value::Boolean(operation(a, b)));
             }
 
             panic!("Expected right to be f64, instead got {:?}", b);
@@ -158,6 +167,38 @@ impl<'a> VM<'a> {
         self.stack_push(constant);
     }
 
+    fn run_get_local_operation(&mut self) {
+        let slot = self.read_byte();
+        let value = self.stack[slot as usize].clone();
+        self.stack_push(value);
+    }
+
+    fn run_set_local_operation(&mut self) {
+        let slot = self.read_byte();
+        self.stack[slot as usize] = self.stack_peek(0);
+    }
+
+    fn run_jump_operation(&mut self) {
+        let offset = self.read_short();
+        self.ip += offset as usize;
+    }
+
+    fn run_jump_if_false_operation(&mut self) {
+        let offset = self.read_short();
+        let condition_value = self.stack_peek(0);
+
+        match condition_value {
+            Value::Boolean(condition) => {
+                if !condition {
+                    return self.ip += offset as usize
+                }
+            },
+            _ => panic!("Expected condition to be bool, instead got {:?}", condition_value)
+        }
+    }
+
+    // Utils
+
     fn read_byte(&mut self) -> u8 {
         self.ip += 1;
         self.chunk.code[self.ip - 1]
@@ -166,6 +207,12 @@ impl<'a> VM<'a> {
     fn read_constant(&mut self) -> Value {
         let byte = self.read_byte();
         self.chunk.contants[byte as usize].clone()
+    }
+
+    fn read_short(&mut self) -> u16 {
+        let value = ((self.chunk.code[self.ip] as u16) << 8) | (self.chunk.code[self.ip + 1] as u16);
+        self.ip += 2;
+        return value
     }
 
 }
