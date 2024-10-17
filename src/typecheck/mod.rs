@@ -178,6 +178,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::Function(function) => check_function(symbol_table, function),
         ast::Expression::Prefix(expression) => check_prefix_expession(symbol_table, expression, expected_type),
         ast::Expression::Infix(expression) => check_infix_expession(symbol_table, expression, expected_type),
+        ast::Expression::Assign(expression) => check_assignment_expression(symbol_table, expression, expected_type),
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
         ast::Expression::If(expression) => check_if_expression(symbol_table, expression, expected_type),
         ast::Expression::While(expression) => check_while_expression(symbol_table, expression, expected_type),
@@ -280,6 +281,15 @@ fn check_infix_expession(symbol_table: &SymbolTable, expression: &ast::InfixExpr
     }
 }
 
+fn check_assignment_expression(symbol_table: &mut SymbolTable, expression: &ast::AssignmentExpression, expected_type: Type) {
+    if expected_type != Type::Void {
+        panic!("Type error: Expected type {:?}, got {:?} instead.", expected_type, Type::Void)
+    }
+    
+    let variable_type = synthesize_identifier(symbol_table, &expression.identifier);
+    check_expression(symbol_table, &expression.expression, variable_type);
+}
+
 fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::BlockExpression, expected_type: Type) {
 
     for statement in &expression.statements {
@@ -368,6 +378,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::Function(_) => Type::Void,
         ast::Expression::Prefix(expression) => synthesize_prefix_expression(expression),
         ast::Expression::Infix(expression) => synthesize_infix_expression(expression),
+        ast::Expression::Assign(expression) => synthesize_assignment_expression(expression),
         ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
         ast::Expression::While(_) => Type::Void,
@@ -405,6 +416,10 @@ fn synthesize_infix_expression(expression: &ast::InfixExpression) -> Type {
         "==" | "!=" | ">" | "<" => Type::Boolean,
         operator => panic!("Invalid operator {:?} found", operator),
     }
+}
+
+fn synthesize_assignment_expression(_: &ast::AssignmentExpression) -> Type {
+    return Type::Void // TODO: Assignment expressions may return the assigned value
 }
 
 fn synthesize_block_expression(symbol_table: &SymbolTable, expression: &ast::BlockExpression) -> Type {
