@@ -107,4 +107,24 @@ mod tests {
         ");
     }
 
+    #[test]
+    fn test_compile_if_expression() {
+        println!("\n======== Testing if expression ========\n");
+        test_compilation("
+            if true {
+                false;
+            };
+        ");
+
+        test_compilation("
+            if false {
+                true;
+            } else {
+                if 2 > 1 {
+                    false;
+                };
+            };
+        ");
+    }
+
 }
