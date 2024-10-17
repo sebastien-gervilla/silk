@@ -77,7 +77,7 @@ mod tests {
     }
     
     #[test]
-    fn test_parse_logical_operator() {
+    fn test_parse_logical_operators() {
         let code = String::from("true && !false;");
         test_parse(&code);
 
