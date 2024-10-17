@@ -13,6 +13,8 @@ use crate::{
 pub enum Precedence {
     LOWEST,
 	ASSIGNMENT,     // =
+	OR,             // ||
+	AND,            // &&
 	EQUALITY,       // ==, !=
 	LESSGREATER,    // >, <
 	SUM,            // +, -
@@ -24,9 +26,11 @@ pub enum Precedence {
 type Precedences = HashMap<TokenKind, Precedence>;
 
 fn get_precedences() -> Precedences {
-    let mut precedences = Precedences::with_capacity(9);
+    let mut precedences = Precedences::with_capacity(12);
 
     precedences.insert(TokenKind::ASSIGN, Precedence::ASSIGNMENT);
+    precedences.insert(TokenKind::OR, Precedence::OR);
+    precedences.insert(TokenKind::AND, Precedence::AND);
     precedences.insert(TokenKind::EQUALS, Precedence::EQUALITY);
     precedences.insert(TokenKind::NOT_EQUALS, Precedence::EQUALITY);
     precedences.insert(TokenKind::GREATER_THAN, Precedence::LESSGREATER);
@@ -80,6 +84,8 @@ fn get_infix_parsing_functions() -> InfixParsingFunctions {
     functions.insert(TokenKind::NOT_EQUALS, parse_infix_expression);
     functions.insert(TokenKind::GREATER_THAN, parse_infix_expression);
     functions.insert(TokenKind::LESS_THAN, parse_infix_expression);
+    functions.insert(TokenKind::AND, parse_infix_expression);
+    functions.insert(TokenKind::OR, parse_infix_expression);
 
     functions.insert(TokenKind::ASSIGN, parse_assignment_expression);
     
