@@ -68,6 +68,15 @@ mod tests {
     }
 
     #[test]
+    fn test_typecheck_logical_operations() {
+        let code = "let x: bool = true && false;";
+        test_typecheck(code);
+
+        let code = "let y: bool = true || (2 < 3);";
+        test_typecheck(code);
+    }
+
+    #[test]
     fn test_typecheck_let_statement() {
         let code = "let x = 8;";
         test_typecheck(code);
