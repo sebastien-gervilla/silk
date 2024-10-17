@@ -84,6 +84,7 @@ impl<'a> Compiler<'a> {
             ast::Expression::StringLiteral(literal) => self.compile_string_literal(literal),
             ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
+            ast::Expression::Block(expression) => self.compile_block_expression(expression),
             _ => todo!()
         }
     }
@@ -139,6 +140,16 @@ impl<'a> Compiler<'a> {
             "<" => self.chunk.add_operation(OperationCode::LESS, expression.node.token.line),
             _ => todo!(),
         }
+    }
+
+    fn compile_block_expression(&mut self, expression: &ast::BlockExpression) {
+        self.depth += 1;
+
+        for statement in &expression.statements {
+            self.compile_statement(statement);
+        }
+
+        self.depth -= 1;
     }
 
 }
