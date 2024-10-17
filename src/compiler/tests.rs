@@ -96,4 +96,35 @@ mod tests {
         ");
     }
 
+    #[test]
+    fn test_compile_block() {
+        println!("\n======== Testing block ========\n");
+        test_compilation("
+            {
+                let x = 2;
+                x + 2;
+            }
+        ");
+    }
+
+    #[test]
+    fn test_compile_if_expression() {
+        println!("\n======== Testing if expression ========\n");
+        test_compilation("
+            if true {
+                false;
+            };
+        ");
+
+        test_compilation("
+            if false {
+                true;
+            } else {
+                if 2 > 1 {
+                    false;
+                };
+            };
+        ");
+    }
+
 }
