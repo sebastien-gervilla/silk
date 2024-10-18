@@ -21,6 +21,7 @@ pub enum OperationCode {
     GET_LOCAL,
     JUMP,
     JUMP_IF_FALSE,
+    LOOP,
     RETURN,
     POP,
 }
@@ -45,8 +46,9 @@ impl OperationCode {
             15 => OperationCode::GET_LOCAL,
             16 => OperationCode::JUMP,
             17 => OperationCode::JUMP_IF_FALSE,
-            18 => OperationCode::RETURN,
-            19 => OperationCode::POP,
+            18 => OperationCode::LOOP,
+            19 => OperationCode::RETURN,
+            20 => OperationCode::POP,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW
@@ -104,6 +106,18 @@ impl Chunk {
 
         self.code[offset] = ((jump >> 8) as u8) & u8::MAX;
         self.code[offset + 1] = jump as u8 & u8::MAX;
+    }
+
+    pub fn add_loop(&mut self, loop_start: usize, line: usize) {
+        self.add_operation(OperationCode::LOOP, line);
+
+        let offset = self.code.len() - loop_start + 2;
+        if offset > u16::MAX as usize {
+            panic!("Loop body is too large");
+        }
+
+        self.add_instruction((offset >> 8) as u8, line);
+        self.add_instruction(offset as u8, line);
     }
 
 }

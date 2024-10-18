@@ -108,6 +108,7 @@ impl<'a> Compiler<'a> {
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
             ast::Expression::Block(expression) => self.compile_block_expression(expression),
             ast::Expression::If(expression) => self.compile_if_expression(expression),
+            ast::Expression::While(expression) => self.compile_while_expression(expression),
             _ => todo!()
         }
     }
@@ -247,6 +248,31 @@ impl<'a> Compiler<'a> {
         }
 
         self.chunk.patch_jump(alternative_jump);
+    }
+
+    fn compile_while_expression(&mut self, expression: &ast::WhileExpression) {
+        let loop_start = self.chunk.code.len();
+
+        self.compile_expression(&expression.condition);
+
+        let exit_jump = self.chunk.add_jump(
+            OperationCode::JUMP_IF_FALSE, 
+            expression.node.token.line
+        );
+
+        self.chunk.add_operation(
+            OperationCode::POP, 
+            expression.node.token.line
+        );
+
+        self.compile_expression(&expression.iteration);
+        self.chunk.add_loop(loop_start, expression.node.token.line);
+
+        self.chunk.patch_jump(exit_jump);
+        self.chunk.add_operation(
+            OperationCode::POP, 
+            expression.node.token.line
+        );
     }
 
     // Utils

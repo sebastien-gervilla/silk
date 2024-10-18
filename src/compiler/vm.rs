@@ -85,6 +85,7 @@ impl<'a> VM<'a> {
                 OperationCode::SET_LOCAL => self.run_set_local_operation(),
                 OperationCode::JUMP => self.run_jump_operation(),
                 OperationCode::JUMP_IF_FALSE => self.run_jump_if_false_operation(),
+                OperationCode::LOOP => self.run_loop(),
                 OperationCode::POP => { self.stack_pop(); },
                 OperationCode::UNKNOW => panic!("Unknow instruction"),
             };
@@ -195,6 +196,11 @@ impl<'a> VM<'a> {
             },
             _ => panic!("Expected condition to be bool, instead got {:?}", condition_value)
         }
+    }
+
+    fn run_loop(&mut self) {
+        let offset = self.read_short();
+        self.ip -= offset as usize;
     }
 
     // Utils

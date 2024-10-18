@@ -142,4 +142,20 @@ mod tests {
         ");
     }
 
+    #[test]
+    fn test_compile_while_expression() {
+        println!("\n======== Testing while expression ========\n");
+        test_compilation("
+            while false {
+                true;
+            };
+        ");
+        
+        test_compilation("
+            while true {
+                true;
+            };
+        ");
+    }
+
 }
