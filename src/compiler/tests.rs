@@ -4,7 +4,7 @@ mod tests {
         bytecode::{
             Chunk,
             OperationCode
-        }, value::Value, vm::VM, Compiler
+        }, object::FunctionObject, value::Value, vm::VM, Compiler
     };
 
     #[test]
@@ -41,9 +41,14 @@ mod tests {
     // Compilation tests
 
     fn test_compilation(source: &str) {
-        let mut chunk = &mut Chunk::new();
-        let mut compiler = Compiler::new(chunk);
-        chunk = compiler.compile(source);
+        let function = &mut FunctionObject {
+            chunk: Chunk::new(),
+            arity: 0,
+            name: String::from("Global"),
+        };
+    
+        let mut compiler = Compiler::new(function);
+        let mut chunk = compiler.compile(source);
     
         let mut vm = VM::new(&mut chunk);
         vm.run();

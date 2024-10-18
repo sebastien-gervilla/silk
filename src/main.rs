@@ -1,7 +1,7 @@
 use std::{env, fs};
 
 use silk::{
-    compiler::{bytecode::Chunk, vm::VM, Compiler}, lexer::Lexer, token::TokenKind
+    compiler::{bytecode::Chunk, object::FunctionObject, vm::VM, Compiler}, lexer::Lexer, token::TokenKind
 };
 
 fn main() {
@@ -21,9 +21,14 @@ fn main() {
         Err(error) => panic!("Couldn't read code file : {error}"),
     };
 
-    let mut chunk = &mut Chunk::new();
-    let mut compiler = Compiler::new(chunk);
-    chunk = compiler.compile(&code);
+    let function = &mut FunctionObject {
+        chunk: Chunk::new(),
+        arity: 0,
+        name: String::from("Global"),
+    };
+
+    let mut compiler = Compiler::new(function);
+    let mut chunk = compiler.compile(&code);
 
     let mut vm = VM::new(&mut chunk);
     vm.run();

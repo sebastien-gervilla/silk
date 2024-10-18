@@ -1,7 +1,7 @@
 use std::array;
 
 use bytecode::{Chunk, OperationCode};
-use object::{Object, StringObject};
+use object::{FunctionObject, Object, StringObject};
 use value::Value;
 
 use crate::{
@@ -20,8 +20,16 @@ pub mod object;
 
 const LOCALS_SIZE: usize = 256;
 
+enum FunctionType {
+    GLOBAL,
+    FUNCTION,
+}
+
 pub struct Compiler<'a> {
-    pub chunk: &'a mut Chunk,
+    // Top-level code is implicitly a function
+    pub function: &'a mut FunctionObject,
+    pub function_type: FunctionType,
+
     pub locals: [Option<Local>; LOCALS_SIZE],
     pub locals_count: usize,
     pub depth: usize,
@@ -34,15 +42,26 @@ pub struct Local {
     pub is_initialized: bool,
 }
 
+pub struct GlobalFunction {
+    pub arity: usize,
+    pub chunk: Chunk,
+    pub name: String,
+}
+
 impl<'a> Compiler<'a> {
 
-    pub fn new(chunk: &'a mut Chunk) -> Self {
+    pub fn new(function: &'a mut FunctionObject) -> Self {
         Self {
-            chunk,
+            function,
+            function_type: FunctionType::GLOBAL,
             locals: array::from_fn(|_| None),
             locals_count: 0,
             depth: 0,
         }
+    }
+
+    pub fn get_current_chunk(&mut self) -> &mut Chunk {
+        return &mut self.function.chunk
     }
 
     pub fn compile(&mut self, source: &str) -> &mut Chunk {
@@ -57,7 +76,7 @@ impl<'a> Compiler<'a> {
 
         self.compile_file(&ast);
 
-        return self.chunk
+        return &mut self.function.chunk
     }
 
     fn compile_file(&mut self, file: &ast::File) {
@@ -87,8 +106,8 @@ impl<'a> Compiler<'a> {
             None => todo!(),
         }
 
-        self.chunk.add_operation(OperationCode::SET_LOCAL, statement.node.token.line);
-        self.chunk.add_instruction(index as u8, statement.node.token.line);
+        self.function.chunk.add_operation(OperationCode::SET_LOCAL, statement.node.token.line);
+        self.function.chunk.add_instruction(index as u8, statement.node.token.line);
 
         match &mut self.locals[index] {
             Some(local) => local.is_initialized = true,
@@ -99,9 +118,7 @@ impl<'a> Compiler<'a> {
     fn compile_expression(&mut self, expression: &ast::Expression) {
         match expression {
             ast::Expression::Identifier(identifier) => self.compile_identifier(identifier),
-            ast::Expression::NumberLiteral(literal) => {
-                self.chunk.add_constant(Value::F64(literal.value as f64), literal.node.token.line);
-            },
+            ast::Expression::NumberLiteral(literal) => self.compile_number_literal(literal),
             ast::Expression::BooleanLiteral(literal) => self.compile_boolean_literal(literal),
             ast::Expression::StringLiteral(literal) => self.compile_string_literal(literal),
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
@@ -119,11 +136,18 @@ impl<'a> Compiler<'a> {
 
         match variable_index {
             Some(index) => {
-                self.chunk.add_operation(OperationCode::GET_LOCAL, identifier.node.token.line);
-                self.chunk.add_instruction(index as u8, identifier.node.token.line);
+                self.function.chunk.add_operation(OperationCode::GET_LOCAL, identifier.node.token.line);
+                self.function.chunk.add_instruction(index as u8, identifier.node.token.line);
             },
             None => todo!() // TODO: We could assume this is a global variable if we support it.
         }
+    }
+
+    fn compile_number_literal(&mut self, literal: &ast::NumberLiteral) {
+        self.function.chunk.add_constant(
+            Value::F64(literal.value as f64), 
+            literal.node.token.line
+        );
     }
 
     fn compile_string_literal(&mut self, literal: &ast::StringLiteral) {
@@ -132,7 +156,7 @@ impl<'a> Compiler<'a> {
             value: literal.value.clone()
         };
         
-        self.chunk.add_constant(
+        self.function.chunk.add_constant(
             Value::Object(
                 Object::String(string_object)
             ), 
@@ -141,7 +165,7 @@ impl<'a> Compiler<'a> {
     }
 
     fn compile_boolean_literal(&mut self, literal: &ast::BooleanLiteral) {
-        self.chunk.add_operation(
+        self.function.chunk.add_operation(
             if literal.value {
                 OperationCode::TRUE
             } else {
@@ -155,8 +179,8 @@ impl<'a> Compiler<'a> {
         self.compile_expression(&expression.expression);
 
         match expression.operator.as_str() {
-            "!" => self.chunk.add_operation(OperationCode::NOT, expression.node.token.line),
-            "-" => self.chunk.add_operation(OperationCode::NEGATE, expression.node.token.line),
+            "!" => self.function.chunk.add_operation(OperationCode::NOT, expression.node.token.line),
+            "-" => self.function.chunk.add_operation(OperationCode::NEGATE, expression.node.token.line),
             _ => todo!()
         }
     }
@@ -174,14 +198,14 @@ impl<'a> Compiler<'a> {
         self.compile_expression(&expression.right_expression);
 
         match expression.operator.as_str() {
-            "+" => self.chunk.add_operation(OperationCode::ADD, expression.node.token.line),
-            "-" => self.chunk.add_operation(OperationCode::SUBSTRACT, expression.node.token.line),
-            "*" => self.chunk.add_operation(OperationCode::MULTIPLY, expression.node.token.line),
-            "/" => self.chunk.add_operation(OperationCode::DIVIDE, expression.node.token.line),
-            "==" => self.chunk.add_operation(OperationCode::EQUALS, expression.node.token.line),
-            "!=" => self.chunk.add_operation(OperationCode::NOT_EQUALS, expression.node.token.line),
-            ">" => self.chunk.add_operation(OperationCode::GREATER, expression.node.token.line),
-            "<" => self.chunk.add_operation(OperationCode::LESS, expression.node.token.line),
+            "+" => self.function.chunk.add_operation(OperationCode::ADD, expression.node.token.line),
+            "-" => self.function.chunk.add_operation(OperationCode::SUBSTRACT, expression.node.token.line),
+            "*" => self.function.chunk.add_operation(OperationCode::MULTIPLY, expression.node.token.line),
+            "/" => self.function.chunk.add_operation(OperationCode::DIVIDE, expression.node.token.line),
+            "==" => self.function.chunk.add_operation(OperationCode::EQUALS, expression.node.token.line),
+            "!=" => self.function.chunk.add_operation(OperationCode::NOT_EQUALS, expression.node.token.line),
+            ">" => self.function.chunk.add_operation(OperationCode::GREATER, expression.node.token.line),
+            "<" => self.function.chunk.add_operation(OperationCode::LESS, expression.node.token.line),
             operator => todo!("Operator {} not implemented yet.", operator),
         }
     }
@@ -189,38 +213,38 @@ impl<'a> Compiler<'a> {
     fn compile_and_expression(&mut self, expression: &ast::InfixExpression) {
         self.compile_expression(&expression.left_expression);
 
-        let end_jump = self.chunk.add_jump(
+        let end_jump = self.function.chunk.add_jump(
             OperationCode::JUMP_IF_FALSE, 
             expression.node.token.line,
         );
 
-        self.chunk.add_operation(OperationCode::POP, expression.node.token.line);
+        self.function.chunk.add_operation(OperationCode::POP, expression.node.token.line);
         self.compile_expression(&expression.right_expression);
 
-        self.chunk.patch_jump(end_jump);
+        self.function.chunk.patch_jump(end_jump);
     }
 
     fn compile_or_expression(&mut self, expression: &ast::InfixExpression) {
         self.compile_expression(&expression.left_expression);
 
-        let else_jump = self.chunk.add_jump(
+        let else_jump = self.function.chunk.add_jump(
             OperationCode::JUMP_IF_FALSE, 
             expression.node.token.line
         );
 
-        let end_jump = self.chunk.add_jump(
+        let end_jump = self.function.chunk.add_jump(
             OperationCode::JUMP, 
             expression.node.token.line
         );
 
-        self.chunk.patch_jump(else_jump);
-        self.chunk.add_operation(
+        self.function.chunk.patch_jump(else_jump);
+        self.function.chunk.add_operation(
             OperationCode::POP, 
             expression.node.token.line
         );
 
         self.compile_expression(&expression.right_expression);
-        self.chunk.patch_jump(end_jump);
+        self.function.chunk.patch_jump(end_jump);
     }
 
     fn compile_assignment_expression(&mut self, expression: &ast::AssignmentExpression) {
@@ -230,8 +254,8 @@ impl<'a> Compiler<'a> {
 
         match variable_index {
             Some(index) => {
-                self.chunk.add_operation(OperationCode::SET_LOCAL, expression.node.token.line);
-                self.chunk.add_instruction(index as u8, expression.node.token.line);
+                self.function.chunk.add_operation(OperationCode::SET_LOCAL, expression.node.token.line);
+                self.function.chunk.add_instruction(index as u8, expression.node.token.line);
             },
             None => todo!() // TODO: We could assume this is a global variable if we support it.
         }
@@ -250,41 +274,41 @@ impl<'a> Compiler<'a> {
     fn compile_if_expression(&mut self, expression: &ast::IfExpression) {
         self.compile_expression(&expression.condition);
 
-        let then_jump = self.chunk.add_jump(OperationCode::JUMP_IF_FALSE, expression.node.token.line);
-        self.chunk.add_operation(OperationCode::POP, expression.node.token.line);
+        let then_jump = self.function.chunk.add_jump(OperationCode::JUMP_IF_FALSE, expression.node.token.line);
+        self.function.chunk.add_operation(OperationCode::POP, expression.node.token.line);
         self.compile_expression(&expression.consequence);
 
-        let alternative_jump = self.chunk.add_jump(OperationCode::JUMP, expression.node.token.line);
-        self.chunk.patch_jump(then_jump);
-        self.chunk.add_operation(OperationCode::POP, expression.node.token.line);
+        let alternative_jump = self.function.chunk.add_jump(OperationCode::JUMP, expression.node.token.line);
+        self.function.chunk.patch_jump(then_jump);
+        self.function.chunk.add_operation(OperationCode::POP, expression.node.token.line);
 
         if let Some(alternative) = &expression.alternative {
             self.compile_expression(alternative);
         }
 
-        self.chunk.patch_jump(alternative_jump);
+        self.function.chunk.patch_jump(alternative_jump);
     }
 
     fn compile_while_expression(&mut self, expression: &ast::WhileExpression) {
-        let loop_start = self.chunk.code.len();
+        let loop_start = self.function.chunk.code.len();
 
         self.compile_expression(&expression.condition);
 
-        let exit_jump = self.chunk.add_jump(
+        let exit_jump = self.function.chunk.add_jump(
             OperationCode::JUMP_IF_FALSE, 
             expression.node.token.line
         );
 
-        self.chunk.add_operation(
+        self.function.chunk.add_operation(
             OperationCode::POP, 
             expression.node.token.line
         );
 
         self.compile_expression(&expression.iteration);
-        self.chunk.add_loop(loop_start, expression.node.token.line);
+        self.function.chunk.add_loop(loop_start, expression.node.token.line);
 
-        self.chunk.patch_jump(exit_jump);
-        self.chunk.add_operation(
+        self.function.chunk.patch_jump(exit_jump);
+        self.function.chunk.add_operation(
             OperationCode::POP, 
             expression.node.token.line
         );
