@@ -162,6 +162,7 @@ impl<'a> Compiler<'a> {
     fn compile_infix_expression(&mut self, expression: &ast::InfixExpression) {
         match expression.operator.as_str() {
             "&&" => self.compile_and_expression(&expression),
+            "||" => self.compile_or_expression(&expression),
             _ => self.compile_simple_infix_expression(&expression),
         }
     }
@@ -185,7 +186,7 @@ impl<'a> Compiler<'a> {
 
     fn compile_and_expression(&mut self, expression: &ast::InfixExpression) {
         self.compile_expression(&expression.left_expression);
-        
+
         let end_jump = self.chunk.add_jump(
             OperationCode::JUMP_IF_FALSE, 
             expression.node.token.line,
@@ -194,6 +195,29 @@ impl<'a> Compiler<'a> {
         self.chunk.add_operation(OperationCode::POP, expression.node.token.line);
         self.compile_expression(&expression.right_expression);
 
+        self.chunk.patch_jump(end_jump);
+    }
+
+    fn compile_or_expression(&mut self, expression: &ast::InfixExpression) {
+        self.compile_expression(&expression.left_expression);
+
+        let else_jump = self.chunk.add_jump(
+            OperationCode::JUMP_IF_FALSE, 
+            expression.node.token.line
+        );
+
+        let end_jump = self.chunk.add_jump(
+            OperationCode::JUMP, 
+            expression.node.token.line
+        );
+
+        self.chunk.patch_jump(else_jump);
+        self.chunk.add_operation(
+            OperationCode::POP, 
+            expression.node.token.line
+        );
+
+        self.compile_expression(&expression.right_expression);
         self.chunk.patch_jump(end_jump);
     }
 

@@ -79,6 +79,12 @@ mod tests {
 
         println!("\n======== Testing and ========\n");
         test_compilation("false && (4 < 34);");
+
+        println!("\n======== Testing or ========\n");
+        test_compilation("true || (2 < 3);");
+
+        println!("\n======== Testing or ========\n");
+        test_compilation("false || (4 > 34);");
     }
 
     #[test]
