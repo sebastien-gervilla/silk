@@ -117,7 +117,7 @@ mod tests {
         test_compilation("
             {
                 let x = 2;
-                x + 2;
+                x = x + 2;
             }
         ");
     }
@@ -152,9 +152,12 @@ mod tests {
         ");
         
         test_compilation("
-            while true {
-                true;
-            };
+            {
+                let x = 0;
+                while x < 10 {
+                    x = x + 1;
+                };
+            }
         ");
     }
 

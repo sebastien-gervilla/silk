@@ -104,8 +104,9 @@ impl<'a> Compiler<'a> {
             },
             ast::Expression::BooleanLiteral(literal) => self.compile_boolean_literal(literal),
             ast::Expression::StringLiteral(literal) => self.compile_string_literal(literal),
-            ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
+            ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
+            ast::Expression::Assign(expression) => self.compile_assignment_expression(expression),
             ast::Expression::Block(expression) => self.compile_block_expression(expression),
             ast::Expression::If(expression) => self.compile_if_expression(expression),
             ast::Expression::While(expression) => self.compile_while_expression(expression),
@@ -220,6 +221,20 @@ impl<'a> Compiler<'a> {
 
         self.compile_expression(&expression.right_expression);
         self.chunk.patch_jump(end_jump);
+    }
+
+    fn compile_assignment_expression(&mut self, expression: &ast::AssignmentExpression) {
+        let variable_index = self.get_local_variable_index(&expression.identifier.value);
+
+        self.compile_expression(&expression.expression);
+
+        match variable_index {
+            Some(index) => {
+                self.chunk.add_operation(OperationCode::SET_LOCAL, expression.node.token.line);
+                self.chunk.add_instruction(index as u8, expression.node.token.line);
+            },
+            None => todo!() // TODO: We could assume this is a global variable if we support it.
+        }
     }
 
     fn compile_block_expression(&mut self, expression: &ast::BlockExpression) {
