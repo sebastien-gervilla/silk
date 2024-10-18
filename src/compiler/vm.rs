@@ -52,6 +52,9 @@ impl<'a> VM<'a> {
     }
 
     pub fn run(&mut self) -> InterpretationResult {
+        
+        println!("{:?}", self.chunk.code);
+
         loop {
             #[cfg(feature = "debug_trace_execution")]
             {

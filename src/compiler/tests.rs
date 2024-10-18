@@ -73,6 +73,15 @@ mod tests {
     }
 
     #[test]
+    fn test_compile_logical_operators() {
+        println!("\n======== Testing and ========\n");
+        test_compilation("true && (2 < 3);");
+
+        println!("\n======== Testing and ========\n");
+        test_compilation("false && (4 < 34);");
+    }
+
+    #[test]
     fn test_compile_negation() {
         println!("\n======== Testing negation ========\n");
         test_compilation("-22;");

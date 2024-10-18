@@ -160,7 +160,13 @@ impl<'a> Compiler<'a> {
     }
 
     fn compile_infix_expression(&mut self, expression: &ast::InfixExpression) {
+        match expression.operator.as_str() {
+            "&&" => self.compile_and_expression(&expression),
+            _ => self.compile_simple_infix_expression(&expression),
+        }
+    }
 
+    fn compile_simple_infix_expression(&mut self, expression: &ast::InfixExpression) {
         self.compile_expression(&expression.left_expression);
         self.compile_expression(&expression.right_expression);
 
@@ -173,8 +179,22 @@ impl<'a> Compiler<'a> {
             "!=" => self.chunk.add_operation(OperationCode::NOT_EQUALS, expression.node.token.line),
             ">" => self.chunk.add_operation(OperationCode::GREATER, expression.node.token.line),
             "<" => self.chunk.add_operation(OperationCode::LESS, expression.node.token.line),
-            _ => todo!(),
+            operator => todo!("Operator {} not implemented yet.", operator),
         }
+    }
+
+    fn compile_and_expression(&mut self, expression: &ast::InfixExpression) {
+        self.compile_expression(&expression.left_expression);
+        
+        let end_jump = self.chunk.add_jump(
+            OperationCode::JUMP_IF_FALSE, 
+            expression.node.token.line,
+        );
+
+        self.chunk.add_operation(OperationCode::POP, expression.node.token.line);
+        self.compile_expression(&expression.right_expression);
+
+        self.chunk.patch_jump(end_jump);
     }
 
     fn compile_block_expression(&mut self, expression: &ast::BlockExpression) {
