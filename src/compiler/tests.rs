@@ -57,9 +57,11 @@ mod tests {
     #[test]
     fn test_compile_literals() {
         println!("\n======== Testing literals ========\n");
+        test_compilation("-11;");
         test_compilation("22;");
         test_compilation("\"string\";");
         test_compilation("true;");
+        test_compilation("false;");
     }
 
     #[test]
