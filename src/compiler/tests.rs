@@ -115,6 +115,8 @@ mod tests {
         test_compilation("
             2 == 2;
             2 != 2;
+            true == false;
+            true != false;
         ");
     }
 
