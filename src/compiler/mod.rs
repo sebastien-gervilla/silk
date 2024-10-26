@@ -4,12 +4,7 @@ use bytecode::{Chunk, OperationCode};
 use object::{FunctionObject, Object, StringObject};
 use value::Value;
 
-use crate::{
-    ast, lexer::Lexer, parser::{
-        parse_file, 
-        Parser
-    }, typecheck::check_program
-};
+use crate::ast;
 
 pub mod tests;
 pub mod bytecode;
@@ -20,15 +15,9 @@ pub mod object;
 
 const LOCALS_SIZE: usize = 256;
 
-enum FunctionType {
-    GLOBAL,
-    FUNCTION,
-}
-
 pub struct Compiler<'a> {
     // Top-level code is implicitly a function
     pub function: &'a mut FunctionObject,
-    pub function_type: FunctionType,
 
     pub locals: [Option<Local>; LOCALS_SIZE],
     pub locals_count: usize,
@@ -53,7 +42,6 @@ impl<'a> Compiler<'a> {
     pub fn new(function: &'a mut FunctionObject) -> Self {
         Self {
             function,
-            function_type: FunctionType::GLOBAL,
             locals: array::from_fn(|_| None),
             locals_count: 0,
             depth: 0,
@@ -64,19 +52,9 @@ impl<'a> Compiler<'a> {
         return &mut self.function.chunk
     }
 
-    pub fn compile(&mut self, source: &str) -> &mut Chunk {
-        let mut lexer = Lexer::new(source);
-        let mut parser = Parser::new(&mut lexer);
-
-        let ast = parse_file(&mut parser);
-        println!("Parsing completed.");
-
-        check_program(&ast);
-        println!("Typechecking completed.");
-
+    pub fn compile(&mut self, ast: &ast::File) -> &mut FunctionObject {
         self.compile_file(&ast);
-
-        return &mut self.function.chunk
+        return &mut self.function
     }
 
     fn compile_file(&mut self, file: &ast::File) {

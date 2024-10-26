@@ -1,46 +1,59 @@
 #[cfg(test)]
 mod tests {
-    use crate::compiler::{
+    use crate::{compiler::{
         bytecode::{
             Chunk,
             OperationCode
         }, object::FunctionObject, value::Value, vm::VM, Compiler
-    };
+    }, lexer::Lexer, parser::{parse_file, Parser}, typecheck::check_program};
 
     #[test]
     fn test_bytecode() {
         
-        let mut chunk = Chunk::new();
+        let function = &mut FunctionObject {
+            chunk: Chunk::new(),
+            arity: 0,
+            name: String::from("Global"),
+        };
 
         // CONSTANT 1.5
-        chunk.add_constant(Value::F64(1.5), 1);
+        function.chunk.add_constant(Value::F64(1.5), 1);
 
         // CONSTANT 2.5
-        chunk.add_constant(Value::F64(2.5), 1);
+        function.chunk.add_constant(Value::F64(2.5), 1);
 
         // ADD => 4
-        chunk.add_operation(OperationCode::ADD, 1);
+        function.chunk.add_operation(OperationCode::ADD, 1);
 
         // CONSTANT 4
-        chunk.add_constant(Value::F64(4.5), 1);
+        function.chunk.add_constant(Value::F64(4.5), 1);
 
         // DIVIDE => 1
-        chunk.add_operation(OperationCode::DIVIDE, 1);
+        function.chunk.add_operation(OperationCode::DIVIDE, 1);
 
         // NEGATE => -1
-        chunk.add_operation(OperationCode::NEGATE, 1);
+        function.chunk.add_operation(OperationCode::NEGATE, 1);
 
         // RETURN => -1
-        chunk.add_operation(OperationCode::RETURN, 1);
+        function.chunk.add_operation(OperationCode::RETURN, 1);
 
         // disassemble_chunk(&chunk, "Testing chunks");
-        let mut vm = VM::new(&mut chunk);
+        let mut vm = VM::new(function);
         vm.run();
     }
 
     // Compilation tests
 
     fn test_compilation(source: &str) {
+        let mut lexer = Lexer::new(source);
+        let mut parser = Parser::new(&mut lexer);
+    
+        let ast = parse_file(&mut parser);
+        println!("Parsing completed.");
+    
+        check_program(&ast);
+        println!("Typechecking completed.");
+
         let function = &mut FunctionObject {
             chunk: Chunk::new(),
             arity: 0,
@@ -48,9 +61,9 @@ mod tests {
         };
     
         let mut compiler = Compiler::new(function);
-        let mut chunk = compiler.compile(source);
+        let function = compiler.compile(&ast);
     
-        let mut vm = VM::new(&mut chunk);
+        let mut vm = VM::new(function);
         vm.run();
     }
 
