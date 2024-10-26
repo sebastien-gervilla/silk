@@ -107,6 +107,7 @@ impl<'a> Compiler<'a> {
             ast::Expression::If(expression) => self.compile_if_expression(expression),
             ast::Expression::While(expression) => self.compile_while_expression(expression),
             ast::Expression::Call(expression) => self.compile_call_expression(expression),
+            ast::Expression::Return(expression) => self.compile_return_expression(expression),
             _ => todo!()
         }
     }
@@ -378,6 +379,10 @@ impl<'a> Compiler<'a> {
         self.function.chunk.add_instruction(expression.arguments.len() as u8, expression.node.token.line);
     }
 
+    fn compile_return_expression(&mut self, expression: &ast::ReturnExpression) {
+        self.compile_expression(&expression.expression);
+        self.function.chunk.add_operation(OperationCode::RETURN, expression.node.token.line);
+    }
 
     // Utils
 
