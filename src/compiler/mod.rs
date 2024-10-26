@@ -106,6 +106,7 @@ impl<'a> Compiler<'a> {
             ast::Expression::Block(expression) => self.compile_block_expression(expression),
             ast::Expression::If(expression) => self.compile_if_expression(expression),
             ast::Expression::While(expression) => self.compile_while_expression(expression),
+            ast::Expression::Call(expression) => self.compile_call_expression(expression),
             _ => todo!()
         }
     }
@@ -365,6 +366,18 @@ impl<'a> Compiler<'a> {
             expression.node.token.line
         );
     }
+
+    fn compile_call_expression(&mut self, expression: &ast::CallExpression) {
+        self.compile_expression(expression.identifier.as_ref());
+
+        for argument in &expression.arguments {
+            self.compile_expression(argument);
+        }
+
+        self.function.chunk.add_operation(OperationCode::CALL, expression.node.token.line);
+        self.function.chunk.add_instruction(expression.arguments.len() as u8, expression.node.token.line);
+    }
+
 
     // Utils
 

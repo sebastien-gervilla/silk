@@ -24,6 +24,7 @@ pub enum OperationCode {
     JUMP,
     JUMP_IF_FALSE,
     LOOP,
+    CALL,
     RETURN,
     POP,
 }
@@ -44,13 +45,16 @@ impl OperationCode {
             11 => OperationCode::LESS,
             12 => OperationCode::NOT,
             13 => OperationCode::NEGATE,
-            14 => OperationCode::SET_LOCAL,
-            15 => OperationCode::GET_LOCAL,
-            16 => OperationCode::JUMP,
-            17 => OperationCode::JUMP_IF_FALSE,
-            18 => OperationCode::LOOP,
-            19 => OperationCode::RETURN,
-            20 => OperationCode::POP,
+            14 => OperationCode::SET_GLOBAL,
+            15 => OperationCode::GET_GLOBAL,
+            16 => OperationCode::SET_LOCAL,
+            17 => OperationCode::GET_LOCAL,
+            18 => OperationCode::JUMP,
+            19 => OperationCode::JUMP_IF_FALSE,
+            20 => OperationCode::LOOP,
+            21 => OperationCode::CALL,
+            22 => OperationCode::RETURN,
+            23 => OperationCode::POP,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW
