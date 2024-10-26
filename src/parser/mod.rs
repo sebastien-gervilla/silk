@@ -126,8 +126,8 @@ impl<'a> Parser<'a> {
     }
 
     pub fn assert_peek(&mut self, expected: TokenKind) -> bool {
-        self.next_token();
-        if self.current_token.kind == expected {
+        if self.peek_token.kind == expected {
+            self.next_token();
             return true
         } else {
             self.add_error(
