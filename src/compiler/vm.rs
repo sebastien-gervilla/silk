@@ -119,6 +119,7 @@ impl VM {
                 OperationCode::JUMP => self.run_jump_operation(),
                 OperationCode::JUMP_IF_FALSE => self.run_jump_if_false_operation(),
                 OperationCode::LOOP => self.run_loop(),
+                OperationCode::CALL => self.run_call_operation(),
                 OperationCode::POP => { self.stack_pop(); },
                 OperationCode::UNKNOW => panic!("Unknow instruction"),
             };
@@ -278,6 +279,12 @@ impl VM {
         frame.ip -= offset as usize;
     }
 
+    fn run_call_operation(&mut self) {
+        let arguments_count = self.read_byte();
+        let peek = self.stack_peek(arguments_count as usize);
+        self.call_value(peek, arguments_count);
+    }
+
     fn run_return_operation(&mut self) -> bool {
         let value = self.stack_pop();
         self.frames_count -= 1;
@@ -290,6 +297,29 @@ impl VM {
         return false
     }
 
+    fn call_value(&mut self, callee: Value, arguments_count: u8) {
+        if let Value::Object(callee_object) = callee {
+            if let Object::Function(function) = callee_object {
+                return self.call(function, arguments_count);
+            }
+        }
+
+        panic!("Couldn't call value.")
+    }
+
+    fn call(&mut self, function: FunctionObject, arguments_count: u8) {
+        let mut slots = vec![];
+        slots.extend_from_slice(&self.stack[(self.stack.len() - arguments_count as usize)..self.stack.len()]);
+
+        let call_frame = CallFrame {
+            function,
+            ip: 0,
+            slots,
+        };
+
+        self.frames[self.frames_count] = Some(call_frame);
+        self.frames_count += 1;
+    }
 
     // Utils
 
