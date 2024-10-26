@@ -17,6 +17,8 @@ pub enum OperationCode {
     LESS,
     NOT,
     NEGATE,
+    SET_GLOBAL,
+    GET_GLOBAL,
     SET_LOCAL,
     GET_LOCAL,
     JUMP,

@@ -99,6 +99,7 @@ impl<'a> Compiler<'a> {
             ast::Expression::NumberLiteral(literal) => self.compile_number_literal(literal),
             ast::Expression::BooleanLiteral(literal) => self.compile_boolean_literal(literal),
             ast::Expression::StringLiteral(literal) => self.compile_string_literal(literal),
+            ast::Expression::Function(function) => self.compile_function(function),
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
             ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
             ast::Expression::Assign(expression) => self.compile_assignment_expression(expression),
@@ -155,6 +156,64 @@ impl<'a> Compiler<'a> {
             ), 
             literal.node.token.line
         );
+    }
+
+    fn compile_function(&mut self, function: &ast::Function) {
+
+        let mut constant: Option<u8> = None;
+        if self.depth > 0 {
+            let index = self.declare_local_variable(&function.identifier);
+
+            match &mut self.locals[index] {
+                Some(local) => local.is_initialized = true,
+                None => panic!("Function not found after initialization"),
+            }
+        } else {
+            let constant_index = self.function.chunk.push_constant(
+                Value::Object(
+                    Object::String(
+                        StringObject {
+                            length: function.identifier.value.len(),
+                            value: function.identifier.value.clone(),
+                        }
+                    )
+                )
+            );
+
+            constant = Some(constant_index);
+        }
+
+        let function_object = &mut FunctionObject {
+            chunk: Chunk::new(),
+            arity: 0,
+            name: function.identifier.value.clone(),
+        };
+        let mut compiler = Compiler::new(function_object);
+
+        compiler.depth += 1;
+        compiler.compile_function_parameters(function);
+        compiler.depth -= 1;
+
+        compiler.compile_expression(&function.body);
+
+        self.function.chunk.add_constant(Value::Object(Object::Function(function_object.clone())), function.node.token.line);
+
+        if let Some(constant_index) = constant {
+            self.function.chunk.add_operation(OperationCode::SET_GLOBAL, function.node.token.line);
+            self.function.chunk.add_instruction(constant_index, function.node.token.line);
+        }
+    }
+
+    fn compile_function_parameters(&mut self, function: &ast::Function) {
+        for parameter in &function.parameters {
+            self.function.arity += 1;
+            let index = self.declare_local_variable(&parameter.identifier);
+
+            match &mut self.locals[index] {
+                Some(local) => local.is_initialized = true,
+                None => panic!("Function not found after initialization"),
+            }
+        }
     }
 
     fn compile_boolean_literal(&mut self, literal: &ast::BooleanLiteral) {
