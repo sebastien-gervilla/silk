@@ -383,7 +383,10 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
         ast::Expression::While(_) => Type::Void,
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
-        ast::Expression::Return(_) => panic!("TODO: synthesize_expression must return an optional type"),
+        ast::Expression::Return(expression) => {
+            // TODO: synthesize_expression must return an optional type
+            synthesize_expression(symbol_table, &expression.expression)
+        },
         _ => todo!(),
     }
 }
