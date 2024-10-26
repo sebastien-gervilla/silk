@@ -1,60 +1,80 @@
 #[cfg(test)]
 mod tests {
-    use crate::compiler::{
+    use crate::{compiler::{
         bytecode::{
             Chunk,
             OperationCode
-        }, value::Value, vm::VM, Compiler
-    };
+        }, object::FunctionObject, value::Value, vm::VM, Compiler
+    }, lexer::Lexer, parser::{parse_file, Parser}, typecheck::check_program};
 
     #[test]
     fn test_bytecode() {
         
-        let mut chunk = Chunk::new();
+        let function = &mut FunctionObject {
+            chunk: Chunk::new(),
+            arity: 0,
+            name: String::from("Global"),
+        };
 
         // CONSTANT 1.5
-        chunk.add_constant(Value::F64(1.5), 1);
+        function.chunk.add_constant(Value::F64(1.5), 1);
 
         // CONSTANT 2.5
-        chunk.add_constant(Value::F64(2.5), 1);
+        function.chunk.add_constant(Value::F64(2.5), 1);
 
         // ADD => 4
-        chunk.add_operation(OperationCode::ADD, 1);
+        function.chunk.add_operation(OperationCode::ADD, 1);
 
         // CONSTANT 4
-        chunk.add_constant(Value::F64(4.5), 1);
+        function.chunk.add_constant(Value::F64(4.5), 1);
 
         // DIVIDE => 1
-        chunk.add_operation(OperationCode::DIVIDE, 1);
+        function.chunk.add_operation(OperationCode::DIVIDE, 1);
 
         // NEGATE => -1
-        chunk.add_operation(OperationCode::NEGATE, 1);
+        function.chunk.add_operation(OperationCode::NEGATE, 1);
 
         // RETURN => -1
-        chunk.add_operation(OperationCode::RETURN, 1);
+        function.chunk.add_operation(OperationCode::RETURN, 1);
 
         // disassemble_chunk(&chunk, "Testing chunks");
-        let mut vm = VM::new(&mut chunk);
+        let mut vm = VM::new(function);
         vm.run();
     }
 
     // Compilation tests
 
     fn test_compilation(source: &str) {
-        let mut chunk = &mut Chunk::new();
-        let mut compiler = Compiler::new(chunk);
-        chunk = compiler.compile(source);
+        let mut lexer = Lexer::new(source);
+        let mut parser = Parser::new(&mut lexer);
     
-        let mut vm = VM::new(&mut chunk);
+        let ast = parse_file(&mut parser);
+        println!("Parsing completed.");
+    
+        check_program(&ast);
+        println!("Typechecking completed.");
+
+        let function = &mut FunctionObject {
+            chunk: Chunk::new(),
+            arity: 0,
+            name: String::from("Global"),
+        };
+    
+        let mut compiler = Compiler::new(function);
+        let function = compiler.compile(&ast);
+    
+        let mut vm = VM::new(function);
         vm.run();
     }
 
     #[test]
     fn test_compile_literals() {
         println!("\n======== Testing literals ========\n");
+        test_compilation("-11;");
         test_compilation("22;");
         test_compilation("\"string\";");
         test_compilation("true;");
+        test_compilation("false;");
     }
 
     #[test]
@@ -70,6 +90,21 @@ mod tests {
 
         println!("\n======== Testing division ========\n");
         test_compilation("10 / 2;");
+    }
+
+    #[test]
+    fn test_compile_logical_operators() {
+        println!("\n======== Testing and ========\n");
+        test_compilation("true && (2 < 3);");
+
+        println!("\n======== Testing and ========\n");
+        test_compilation("false && (4 < 34);");
+
+        println!("\n======== Testing or ========\n");
+        test_compilation("true || (2 < 3);");
+
+        println!("\n======== Testing or ========\n");
+        test_compilation("false || (4 > 34);");
     }
 
     #[test]
@@ -93,6 +128,8 @@ mod tests {
         test_compilation("
             2 == 2;
             2 != 2;
+            true == false;
+            true != false;
         ");
     }
 
@@ -102,7 +139,7 @@ mod tests {
         test_compilation("
             {
                 let x = 2;
-                x + 2;
+                x = x + 2;
             }
         ");
     }
@@ -124,6 +161,25 @@ mod tests {
                     false;
                 };
             };
+        ");
+    }
+
+    #[test]
+    fn test_compile_while_expression() {
+        println!("\n======== Testing while expression ========\n");
+        test_compilation("
+            while false {
+                true;
+            };
+        ");
+        
+        test_compilation("
+            {
+                let x = 0;
+                while x < 10 {
+                    x = x + 1;
+                };
+            }
         ");
     }
 
