@@ -17,10 +17,14 @@ pub enum OperationCode {
     LESS,
     NOT,
     NEGATE,
+    SET_GLOBAL,
+    GET_GLOBAL,
     SET_LOCAL,
     GET_LOCAL,
     JUMP,
     JUMP_IF_FALSE,
+    LOOP,
+    CALL,
     RETURN,
     POP,
 }
@@ -41,12 +45,16 @@ impl OperationCode {
             11 => OperationCode::LESS,
             12 => OperationCode::NOT,
             13 => OperationCode::NEGATE,
-            14 => OperationCode::SET_LOCAL,
-            15 => OperationCode::GET_LOCAL,
-            16 => OperationCode::JUMP,
-            17 => OperationCode::JUMP_IF_FALSE,
-            18 => OperationCode::RETURN,
-            19 => OperationCode::POP,
+            14 => OperationCode::SET_GLOBAL,
+            15 => OperationCode::GET_GLOBAL,
+            16 => OperationCode::SET_LOCAL,
+            17 => OperationCode::GET_LOCAL,
+            18 => OperationCode::JUMP,
+            19 => OperationCode::JUMP_IF_FALSE,
+            20 => OperationCode::LOOP,
+            21 => OperationCode::CALL,
+            22 => OperationCode::RETURN,
+            23 => OperationCode::POP,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW
@@ -55,6 +63,7 @@ impl OperationCode {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Chunk {
     pub code: Vec<u8>,
     pub contants: Vec<Value>,
@@ -70,10 +79,15 @@ impl Chunk {
         }
     }
 
-    pub fn add_constant(&mut self, constant: Value, line: usize) {
-        self.add_operation(OperationCode::CONSTANT, line);
+    pub fn push_constant(&mut self, constant: Value) -> u8 {
         self.contants.push(constant);
-        self.add_instruction((self.contants.len() - 1) as u8, line);
+        return (self.contants.len() - 1) as u8;
+    }
+
+    pub fn add_constant(&mut self, value: Value, line: usize) {
+        self.add_operation(OperationCode::CONSTANT, line);
+        let constant = self.push_constant(value);
+        self.add_instruction(constant, line);
     }
 
     pub fn add_instruction(&mut self, instruction: u8, line: usize) {
@@ -104,6 +118,18 @@ impl Chunk {
 
         self.code[offset] = ((jump >> 8) as u8) & u8::MAX;
         self.code[offset + 1] = jump as u8 & u8::MAX;
+    }
+
+    pub fn add_loop(&mut self, loop_start: usize, line: usize) {
+        self.add_operation(OperationCode::LOOP, line);
+
+        let offset = self.code.len() - loop_start + 2;
+        if offset > u16::MAX as usize {
+            panic!("Loop body is too large");
+        }
+
+        self.add_instruction((offset >> 8) as u8, line);
+        self.add_instruction(offset as u8, line);
     }
 
 }

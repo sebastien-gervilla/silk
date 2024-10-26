@@ -1,7 +1,19 @@
 use std::{env, fs};
 
 use silk::{
-    compiler::{bytecode::Chunk, vm::VM, Compiler}, lexer::Lexer, token::TokenKind
+    compiler::{
+        bytecode::Chunk, 
+        object::FunctionObject, 
+        vm::VM, 
+        Compiler
+    }, 
+    lexer::Lexer, 
+    parser::{
+        parse_file, 
+        Parser
+    }, 
+    token::TokenKind, 
+    typecheck::check_program
 };
 
 fn main() {
@@ -21,11 +33,32 @@ fn main() {
         Err(error) => panic!("Couldn't read code file : {error}"),
     };
 
-    let mut chunk = &mut Chunk::new();
-    let mut compiler = Compiler::new(chunk);
-    chunk = compiler.compile(&code);
+    let mut lexer = Lexer::new(&code);
+    let mut parser = Parser::new(&mut lexer);
 
-    let mut vm = VM::new(&mut chunk);
+    let ast = parse_file(&mut parser);
+    if parser.errors.len() > 0 {
+        for error in parser.errors {
+            println!("{error}");
+        }
+
+        panic!("Found parsing errors.");
+    }
+    println!("Parsing completed.");
+
+    check_program(&ast);
+    println!("Typechecking completed.");
+
+    let function = &mut FunctionObject {
+        chunk: Chunk::new(),
+        arity: 0,
+        name: String::from("Global"),
+    };
+
+    let mut compiler = Compiler::new(function);
+    let function = compiler.compile(&ast);
+
+    let mut vm = VM::new(function);
     vm.run();
 }
 
