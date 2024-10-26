@@ -318,6 +318,10 @@ impl<'a> Compiler<'a> {
 
     fn declare_local_variable(&mut self, identifier: &ast::Identifier) -> usize {
 
+        if self.depth == 0 {
+            panic!("Cannot declare local variable at global scope");
+        }
+
         if self.locals_count >= LOCALS_SIZE {
             panic!("Exceeded locals variable count");
         }
