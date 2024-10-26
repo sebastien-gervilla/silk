@@ -117,7 +117,22 @@ impl<'a> Compiler<'a> {
                 self.function.chunk.add_operation(OperationCode::GET_LOCAL, identifier.node.token.line);
                 self.function.chunk.add_instruction(index as u8, identifier.node.token.line);
             },
-            None => todo!() // TODO: We could assume this is a global variable if we support it.
+            None => {
+                // Global variables
+                let constant_index = self.function.chunk.push_constant(
+                    Value::Object(
+                        Object::String(
+                            StringObject {
+                                length: identifier.value.len(),
+                                value: identifier.value.clone(),
+                            }
+                        )
+                    )
+                );
+
+                self.function.chunk.add_operation(OperationCode::GET_GLOBAL, identifier.node.token.line);
+                self.function.chunk.add_instruction(constant_index, identifier.node.token.line);
+            }
         }
     }
 
@@ -319,7 +334,6 @@ impl<'a> Compiler<'a> {
 
     fn get_local_variable_index(&mut self, name: &str) -> Option<usize> {
         for index in (0..self.locals_count).rev() {
-            println!("{index}");
             let local_option = &self.locals[index];
             if let Some(local) = local_option {
                 if local.name == name {
