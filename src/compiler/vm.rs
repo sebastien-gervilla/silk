@@ -112,6 +112,8 @@ impl VM {
                 OperationCode::NOT => self.run_not_operation(),
                 OperationCode::NEGATE => self.run_negate_operation(),
                 OperationCode::CONSTANT => self.run_constant_operation(),
+                OperationCode::SET_GLOBAL => self.run_set_global_operation(),
+                OperationCode::GET_GLOBAL => self.run_get_global_operation(),
                 OperationCode::GET_LOCAL => self.run_get_local_operation(),
                 OperationCode::SET_LOCAL => self.run_set_local_operation(),
                 OperationCode::JUMP => self.run_jump_operation(),
@@ -198,6 +200,37 @@ impl VM {
         let constant = self.read_constant();
         println!("PUSHED {:?}", constant);
         self.stack_push(constant);
+    }
+
+    fn run_set_global_operation(&mut self) {
+        let constant = self.read_constant();
+
+        if let Value::Object(object) = constant {
+            if let Object::String(string_object) = object {
+                let value = self.stack_peek(0);
+                self.globals.insert(string_object.value.clone(), value);
+                return;
+            }
+        }
+
+        panic!("Expected string identifier");
+    }
+
+    fn run_get_global_operation(&mut self) {
+        let constant = self.read_constant();
+        
+        if let Value::Object(object) = constant {
+            if let Object::String(string_object) = object {
+                let value = match self.globals.get(&string_object.value) {
+                    Some(value) => value.clone(),
+                    None => panic!("Undefined global {}", &string_object.value),
+                };
+
+                return self.stack_push(value);
+            }
+        }
+
+        panic!("Expected string identifier");
     }
 
     fn run_get_local_operation(&mut self) {
