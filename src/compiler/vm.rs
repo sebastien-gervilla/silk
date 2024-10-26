@@ -77,12 +77,18 @@ impl VM {
 
     pub fn run(&mut self) -> InterpretationResult {
         loop {
-            #[cfg(feature = "debug_trace_execution")]
+            #[cfg(feature = "debug_trace_stack")]
             {
                 for index in 0..self.stack.len() {
                     println!("------ STACK: [ {:?} ]", self.stack[index]);
                 }
-                disassemble_instruction(self.chunk, self.ip);
+            }
+
+            #[cfg(feature = "debug_trace_execution")]
+            {
+                let frame = self.get_current_frame();
+                println!("{} - {}", frame.ip, frame.function.chunk.code.len());
+                disassemble_instruction(&frame.function.chunk, frame.ip);
             }
 
             let instruction = OperationCode::from_u8(self.read_byte());
@@ -115,8 +121,9 @@ impl VM {
                 OperationCode::UNKNOW => panic!("Unknow instruction"),
             };
 
-            if self.ip >= self.chunk.code.len() {
-                #[cfg(feature = "debug_trace_execution")] {
+            let frame = self.get_current_frame();
+            if frame.ip >= frame.function.chunk.code.len() {
+                #[cfg(feature = "debug_trace_stack")] {
                     println!("");
                     for index in 0..self.stack.len() {
                         println!(">> END STACK: [ {:?} ]", self.stack[index]);
