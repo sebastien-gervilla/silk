@@ -89,8 +89,9 @@ impl VM {
 
             match instruction {
                 OperationCode::RETURN => {
-                    println!("RETURN {:?}", self.stack_pop());
-                    return InterpretationResult::OK
+                    if self.run_return_operation() {
+                        return InterpretationResult::OK
+                    }
                 },
                 OperationCode::TRUE => self.stack_push(Value::Boolean(true)),
                 OperationCode::FALSE => self.stack_push(Value::Boolean(false)),
@@ -236,6 +237,19 @@ impl VM {
         let frame = self.get_current_frame();
         frame.ip -= offset as usize;
     }
+
+    fn run_return_operation(&mut self) -> bool {
+        let value = self.stack_pop();
+        self.frames_count -= 1;
+        if self.frames_count <= 0 {
+            self.stack_pop();
+            return true
+        }
+
+        self.stack_push(value);
+        return false
+    }
+
 
     // Utils
 
