@@ -74,7 +74,7 @@ impl<'a> Compiler<'a> {
 
     fn compile_let_statement(&mut self, statement: &ast::LetStatement) {
         if self.depth <= 0 {
-            return;
+            panic!("Cannot declare variables at top-level.")
         }
 
         let index = self.declare_local_variable(&statement.identifier);
