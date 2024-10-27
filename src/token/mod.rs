@@ -29,6 +29,7 @@ pub enum TokenKind {
     EOF,
     COMMA,
     COLON,
+    DOUBLECOLON,
     SEMICOLON,
 	LPAREN,
 	RPAREN,

@@ -57,4 +57,21 @@ mod tests {
 
         test_lex(&code, &expected_tokens);
     }
+
+    #[test]
+    fn test_read_doublecolon() {
+        let code = "::".to_string();
+        let expected_tokens = vec![
+            TokenKind::DOUBLECOLON,
+        ];
+        test_lex(&code, &expected_tokens);
+
+        let code = "id::id".to_string();
+        let expected_tokens = vec![
+            TokenKind::IDENTIFIER,
+            TokenKind::DOUBLECOLON,
+            TokenKind::IDENTIFIER,
+        ];
+        test_lex(&code, &expected_tokens);
+    }
 }
