@@ -83,7 +83,15 @@ impl<'a> Lexer<'a> {
             b'(' => token.kind = TokenKind::LPAREN,
             b')' => token.kind = TokenKind::RPAREN,
             b',' => token.kind = TokenKind::COMMA,
-            b':' => token.kind = TokenKind::COLON,
+            b':' => {
+                if self.get_next_character() == b':' {
+                    self.next_character();
+                    token.kind = TokenKind::DOUBLECOLON;
+                    token.value = String::from("::");
+                } else {
+                    token.kind = TokenKind::COLON;
+                }
+            },
             b'&' => {
                 if self.get_next_character() == b'&' {
                     self.next_character();

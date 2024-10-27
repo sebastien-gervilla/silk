@@ -42,6 +42,7 @@ pub enum Expression {
     While(WhileExpression),
     Call(CallExpression),
     Return(ReturnExpression),
+    Access(AccessExpression),
 }
 
 pub struct Identifier {
@@ -123,4 +124,10 @@ pub struct CallExpression {
 pub struct ReturnExpression {
     pub node: Node,
     pub expression: Box<Expression>,
+}
+
+pub struct AccessExpression {
+    pub node: Node,
+    pub left_expression: Box<Expression>,
+    pub right_expression: Box<Expression>,
 }

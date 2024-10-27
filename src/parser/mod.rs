@@ -20,6 +20,7 @@ pub enum Precedence {
 	SUM,            // +, -
 	PRODUCT,        // *, /
 	PREFIX,         // -expression, !expression
+	ACCESS,         // expression::expression
 	CALL,           // identifier(expression, expression)
 }
 
@@ -39,6 +40,7 @@ fn get_precedences() -> Precedences {
     precedences.insert(TokenKind::MINUS, Precedence::SUM);
     precedences.insert(TokenKind::ASTERISK, Precedence::PRODUCT);
     precedences.insert(TokenKind::SLASH, Precedence::PRODUCT);
+    precedences.insert(TokenKind::DOUBLECOLON, Precedence::ACCESS);
     precedences.insert(TokenKind::LPAREN, Precedence::CALL);
 
     precedences
@@ -74,7 +76,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(11);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(12);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
@@ -88,6 +90,7 @@ fn get_infix_parsing_functions() -> InfixParsingFunctions {
     functions.insert(TokenKind::OR, parse_infix_expression);
 
     functions.insert(TokenKind::ASSIGN, parse_assignment_expression);
+    functions.insert(TokenKind::DOUBLECOLON, parse_access_expression);
     
     functions.insert(TokenKind::LPAREN, parse_call_expression);
 
@@ -639,6 +642,24 @@ fn parse_call_arguments(parser: &mut Parser) -> Vec<Box<ast::Expression>> {
     return arguments
 }
 
+fn parse_access_expression(parser: &mut Parser, left_expression: Box<ast::Expression>) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+    let right_expression = parse_expression(parser, Precedence::LOWEST);
+
+    return Box::new(
+        ast::Expression::Access(
+            ast::AccessExpression {
+                node,
+                left_expression,
+                right_expression,
+            }
+        )
+    )
+}
 
 // Types
 
