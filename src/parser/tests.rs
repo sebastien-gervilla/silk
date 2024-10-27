@@ -203,4 +203,17 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_access_expression() {
+        let code = String::from("
+            x::y;
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            z::call();
+        ");
+        test_parse(&code);
+    }
+
 }
