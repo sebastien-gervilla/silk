@@ -11,6 +11,7 @@ pub enum TokenKind {
     IDENTIFIER,
     NUMBER,
     STRING,
+    CHARACTER,
 
     // Operators
     NOT,

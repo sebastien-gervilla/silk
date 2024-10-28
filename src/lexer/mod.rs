@@ -59,6 +59,15 @@ impl<'a> Lexer<'a> {
                 }
             },
             b';' => token.kind = TokenKind::SEMICOLON,
+            b'\'' => {
+                self.next_character();
+                if self.get_next_character() == b'\'' {
+                    token.kind = TokenKind::CHARACTER;
+                    token.value = self.character.to_string();
+                    self.next_character();
+                }
+
+            },
             b'"' => {
                 token.kind = TokenKind::STRING;
                 token.value = self.read_string();
