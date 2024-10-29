@@ -37,6 +37,23 @@ mod tests {
     }
 
     #[test]
+    fn test_read_characters() {
+        let code = "'''".to_string();
+        let expected_tokens = vec![
+            TokenKind::CHARACTER,
+        ];
+        test_lex(&code, &expected_tokens);
+
+        let code = "'b' != 'c'".to_string();
+        let expected_tokens = vec![
+            TokenKind::CHARACTER,
+            TokenKind::NOT_EQUALS,
+            TokenKind::CHARACTER,
+        ];
+        test_lex(&code, &expected_tokens);
+    }
+
+    #[test]
     fn test_read_identifier() {
         let code = "aBc x_y_z _m".to_string();
         let expected_tokens = vec![
