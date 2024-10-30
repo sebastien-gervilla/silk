@@ -7,11 +7,6 @@ use types::Type;
 
 use crate::ast;
 
-enum SymbolKind {
-    Variable,
-    Function,
-}
-
 #[derive(Clone)]
 enum Symbol {
     Variable(VariableSymbol),
@@ -31,7 +26,12 @@ struct FunctionSymbol {
     parameters: Vec<Type>,
 }
 
-type Scope = HashMap<String, Symbol>;
+type Symbols = HashMap<String, Symbol>;
+
+struct Scope {
+    symbols: Symbols,
+    return_type: Type,
+}
 
 struct SymbolTable {
     scopes: Vec<Scope>,
@@ -44,8 +44,27 @@ impl SymbolTable {
         }
     }
 
+    pub fn get_current_scope(&self) -> &Scope {
+        return self.scopes.last().expect("No scope found.")
+    }
+
     pub fn enter_scope(&mut self) {
-        self.scopes.push(Scope::new());
+        let current_scope_type = match self.scopes.last() {
+            Some(scope) => scope.return_type.clone(),
+            None => Type::Void, // This is the global scope return type
+        };
+
+        self.scopes.push(Scope {
+            symbols: Symbols::new(),
+            return_type: current_scope_type,
+        });
+    }
+
+    pub fn enter_function_scope(&mut self, return_type: Type) {
+        self.scopes.push(Scope {
+            symbols: Symbols::new(),
+            return_type,
+        });
     }
 
     pub fn exit_scope(&mut self) {
@@ -59,12 +78,12 @@ impl SymbolTable {
         };
 
         let symbol_name = get_symbol_name(&symbol);
-        current_scope.insert(symbol_name, symbol);
+        current_scope.symbols.insert(symbol_name, symbol);
     }
 
     pub fn get(&self, name: &str) -> Option<&Symbol> {
         for scope in self.scopes.iter().rev() {
-            if let Some(symbol) = scope.get(name) {
+            if let Some(symbol) = scope.symbols.get(name) {
                 return Some(symbol)
             }
         }
@@ -81,18 +100,8 @@ fn get_symbol_name(symbol: &Symbol) -> String {
     }
 }
 
-pub fn check_program(file: &ast::File) {
-    check_file(file);
-}
-
-pub fn check_file(file: &ast::File) {
-    let mut symbol_table = SymbolTable::new();
-
-    // Global scope
-    symbol_table.enter_scope();
-
-    // First pass, which involves top-level declarations
-    for statement in &file.statements {
+fn declare_scope_functions(symbol_table: &mut SymbolTable, statements: &Vec<ast::Statement>) {
+    for statement in statements {
         if let ast::Statement::Expression(expression) = statement {
             if let ast::Expression::Function(function) = expression.expression.as_ref() {
                 let mut parameters_types = Vec::<Type>::new();
@@ -112,8 +121,21 @@ pub fn check_file(file: &ast::File) {
             }
         }
     }
+}
 
-    // Second pass
+pub fn check_program(file: &ast::File) {
+    check_file(file);
+}
+
+pub fn check_file(file: &ast::File) {
+    let mut symbol_table = SymbolTable::new();
+
+    // Global scope
+    symbol_table.enter_scope();
+
+    // We first declare functions so their can be used before their declaration
+    declare_scope_functions(&mut symbol_table, &file.statements);
+    
     for statement in &file.statements {
         check_statement(&mut symbol_table, statement);
     }
@@ -183,9 +205,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::If(expression) => check_if_expression(symbol_table, expression, expected_type),
         ast::Expression::While(expression) => check_while_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
-        ast::Expression::Return(_) => {
-            // This is handled by the first pass, we don't need to check for returns
-        },
+        ast::Expression::Return(expression) => check_return_expression(symbol_table, expression),
         _ => todo!()
     }
 }
@@ -202,10 +222,10 @@ fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function) {
 
     let body = match function.body.as_ref() {
         ast::Expression::Block(block) => block,
-        _ => todo!("Function body must be a BlockExpression."), // Later we may have lambdas
+        _ => todo!("Function body must be a BlockExpression."),
     };
 
-    symbol_table.enter_scope();
+    symbol_table.enter_function_scope(function.annotation.clone());
 
     for parameter in &function.parameters {
         symbol_table.insert(
@@ -218,8 +238,15 @@ fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function) {
         );
     }
 
+    // We first declare functions so their can be used before their declaration
+    declare_scope_functions(symbol_table, &body.statements);
+
     for statement in &body.statements {
         check_statement(symbol_table, statement);
+    }
+
+    if function.annotation != Type::Void {
+
     }
 
     symbol_table.exit_scope();
@@ -303,31 +330,35 @@ fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::Bloc
             }
         },
         ast::Statement::Expression(expression) => {
-            let body_type = synthesize_expression(symbol_table, &expression.expression);
-            if expected_type != body_type {
-                panic!("Expected {:?}, instead got {:?}", expected_type, body_type);
-            }
+            check_expression(symbol_table, &expression.expression, expected_type);
         }
     }
 }
 
 fn check_if_expression(symbol_table: &mut SymbolTable, expression: &ast::IfExpression, expected_type: Type) {
     check_expression(symbol_table, &expression.condition, Type::Boolean);
+
+    symbol_table.enter_scope();
     check_expression(symbol_table, &expression.consequence, expected_type.clone());
+    symbol_table.exit_scope();
     
     if let Some(alternative) = &expression.alternative {
+        symbol_table.enter_scope();
         check_expression(symbol_table, &alternative, expected_type);
+        symbol_table.exit_scope();
     };
 }
 
-fn check_while_expression(symbol_table: &mut SymbolTable, expression: &ast::WhileExpression, expected_type: Type) {
+fn check_while_expression(symbol_table: &mut SymbolTable, expression: &ast::WhileExpression, _: Type) {
     check_expression(symbol_table, &expression.condition, Type::Boolean);
 
     match &expression.iteration.as_ref() {
         ast::Expression::Block(expression) => {
+            symbol_table.enter_scope();
             for statement in &expression.statements {
                 check_statement(symbol_table, statement);
             };
+            symbol_table.exit_scope();
         },
         _ => panic!("Expected BlockExpression."), // TODO: This should be put in semantic analysis
     }
@@ -367,6 +398,15 @@ fn check_call_expression(symbol_table: &mut SymbolTable, expression: &ast::CallE
     }
 }
 
+fn check_return_expression(symbol_table: &SymbolTable, expression: &ast::ReturnExpression) {
+    let current_scope = symbol_table.get_current_scope();
+
+    let return_type = synthesize_expression(symbol_table, &expression.expression);
+    if current_scope.return_type != return_type {
+        panic!("Type error: Expected type {:?}, got {:?} instead.", current_scope.return_type, return_type);
+    }
+}
+
 // Synthesizing
 
 fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expression) -> Type {
@@ -383,9 +423,10 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
         ast::Expression::While(_) => Type::Void,
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
-        ast::Expression::Return(expression) => {
+        ast::Expression::Return(_) => {
+            return Type::Void;
             // TODO: synthesize_expression must return an optional type
-            synthesize_expression(symbol_table, &expression.expression)
+            // synthesize_expression(symbol_table, &expression.expression)
         },
         _ => todo!(),
     }
