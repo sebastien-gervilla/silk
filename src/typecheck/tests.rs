@@ -90,6 +90,11 @@ mod tests {
         let code = "
             fn my_function() -> int {
                 let x = 10;
+                return if true {
+                    x;
+                } else {
+                    return 2;
+                };
             };
         ";
         test_typecheck(code);
@@ -159,6 +164,21 @@ mod tests {
             while true {
                 let x = 5;
                 12;
+            };
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_typecheck_wrong_nested_blocks() {
+        let code = "
+            if true {
+                if true {
+                    let x = 5;
+                };
+
+                let y: int = x;
             };
         ";
         test_typecheck(code);

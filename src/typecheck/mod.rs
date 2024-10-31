@@ -162,7 +162,7 @@ fn check_let_statement(symbol_table: &mut SymbolTable, statement: &ast::LetState
 
     match &statement.annotation {
         Some(annotation ) => {
-            if annotation != &assigned_type {
+            if annotation != &assigned_type && assigned_type != Type::None {
                 panic!("Expected {:?}, instead got {:?}", annotation, assigned_type);
             }
         },
@@ -246,7 +246,14 @@ fn check_function(symbol_table: &mut SymbolTable, function: &ast::Function) {
     }
 
     if function.annotation != Type::Void {
-
+        match &body.statements[body.statements.len() - 1] {
+            ast::Statement::Let(_) => {
+                panic!("Expected {:?}, instead got {:?}", function.annotation, Type::Void);
+            },
+            ast::Statement::Expression(expression) => {
+                check_expression(symbol_table, &expression.expression, function.annotation.clone());
+            }
+        }
     }
 
     symbol_table.exit_scope();
@@ -424,7 +431,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::While(_) => Type::Void,
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
         ast::Expression::Return(_) => {
-            return Type::Void;
+            return Type::None;
             // TODO: synthesize_expression must return an optional type
             // synthesize_expression(symbol_table, &expression.expression)
         },
@@ -482,6 +489,15 @@ fn synthesize_if_expression(symbol_table: &SymbolTable, expression: &ast::IfExpr
     match &expression.alternative {
         Some(alternative) => {
             let alternative_type = synthesize_expression(symbol_table, alternative.as_ref());
+
+            if consequence_type == Type::None {
+                return alternative_type;
+            }
+
+            if alternative_type == Type::None {
+                return consequence_type;
+            }
+
             if consequence_type != alternative_type {
                 panic!("Type mismatch in if expression: {:?} != {:?}", consequence_type, alternative_type);
             }
