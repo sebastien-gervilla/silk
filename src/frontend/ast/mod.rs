@@ -1,4 +1,7 @@
-use crate::{token::Token, typecheck::types::Type};
+use super::{
+    token::Token,
+    typecheck::types::Type,
+};
 
 pub struct Node {
     pub token: Token,

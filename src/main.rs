@@ -1,19 +1,20 @@
 use std::{env, fs};
 
-use silk::{
-    compiler::{
-        bytecode::Chunk, 
-        object::FunctionObject, 
-        vm::VM, 
-        Compiler
-    }, 
+use silk::backend::{
+    bytecode::Chunk,
+    object::FunctionObject,
+    compiler::Compiler,
+    vm::VM,
+};
+
+use silk::frontend::{
     lexer::Lexer, 
     parser::{
         parse_file, 
         Parser
     }, 
     token::TokenKind, 
-    typecheck::check_program
+    typecheck::check_program,
 };
 
 fn main() {

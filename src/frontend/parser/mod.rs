@@ -2,10 +2,11 @@ pub mod tests;
 
 use std::collections::HashMap;
 
-use crate::{
+use super::{
     ast,
     lexer::Lexer,
-    token::{Token, TokenKind}, typecheck::types::Type
+    token::{Token, TokenKind}, 
+    typecheck::types::Type
 };
 
 // Precedences
@@ -400,7 +401,7 @@ fn parse_return_expression(parser: &mut Parser) -> Box<ast::Expression> {
 }
 
 fn parse_function_parameters(parser: &mut Parser) -> Vec<ast::FunctionParameter> {
-    let mut parameters = Vec::<ast::FunctionParameter>::new();
+    let mut parameters = vec![];
 
     if parser.is_peek_token(TokenKind::RPAREN) {
         return parameters
