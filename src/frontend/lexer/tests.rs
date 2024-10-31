@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::{lexer::Lexer, token::TokenKind};
+    use crate::frontend::{
+        lexer::Lexer, 
+        token::TokenKind
+    };
 
     fn test_lex(code: &String, expected_tokens: &Vec<TokenKind>) {
         let mut lexer = Lexer::new(&code);

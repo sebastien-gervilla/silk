@@ -1,6 +1,6 @@
 pub mod tests;
 
-use crate::token::{
+use super::token::{
     Token, // TODO: This may belong to lexer instead of token
     TokenKind,
     Keywords,

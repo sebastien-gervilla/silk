@@ -1,17 +1,12 @@
 use std::array;
 
-use bytecode::{Chunk, OperationCode};
-use object::{FunctionObject, Object, StringObject};
-use value::Value;
+use crate::backend::{
+    bytecode::{Chunk, OperationCode},
+    object::{FunctionObject, Object, StringObject},
+    value::Value,
+};
 
-use crate::ast;
-
-pub mod tests;
-pub mod bytecode;
-pub mod debug;
-pub mod value;
-pub mod vm;
-pub mod object;
+use crate::frontend::ast;
 
 const LOCALS_SIZE: usize = 256;
 

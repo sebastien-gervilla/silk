@@ -1,3 +1,5 @@
+pub mod tests;
+
 use std::{
     array, 
     collections::HashMap

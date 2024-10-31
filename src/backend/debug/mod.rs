@@ -1,6 +1,7 @@
-use crate::compiler::bytecode::OperationCode;
-
-use super::bytecode::Chunk;
+use super::bytecode::{
+    OperationCode,
+    Chunk,
+};
 
 pub fn disassemble_chunk(chunk: &Chunk, name: &str) {
     println!("===== {} =====", name);
