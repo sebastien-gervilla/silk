@@ -668,6 +668,7 @@ fn parse_type(parser: &mut Parser) -> Type {
     match parser.current_token.value.as_str() {
         "int" => Type::Integer,
         "bool" => Type::Boolean,
+        "void" => Type::Void,
         _ => {
             parser.add_error(format!("Invalid type '{}'", parser.current_token.value));
             Type::Integer

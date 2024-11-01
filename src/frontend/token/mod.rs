@@ -68,6 +68,7 @@ pub fn get_keywords() -> Keywords {
 
     keywords.insert("int", TokenKind::ANNOTATION);
     keywords.insert("bool", TokenKind::ANNOTATION);
+    keywords.insert("void", TokenKind::ANNOTATION);
 
     return keywords
 }
