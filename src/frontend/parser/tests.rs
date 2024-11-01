@@ -16,7 +16,7 @@ mod tests {
 
         if parser.errors.len() > 0 {
             for error in parser.errors {
-                println!("{error}");
+                println!("Parsing error: {error}");
             }
 
             panic!("Found parsing errors.");
@@ -176,9 +176,9 @@ mod tests {
         test_parse(&code);
 
         let code = String::from("
-            fn myFunction(a, b, c) {
-                2 + 4;
-            };
+            fn myFunction(a: int, b: int) -> int {
+                return a + b;
+            }
         ");
         test_parse(&code);
     }

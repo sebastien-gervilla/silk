@@ -391,11 +391,15 @@ fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
 
     parser.assert_peek(TokenKind::RPAREN);
 
-    parser.assert_peek(TokenKind::MINUS);
-    parser.assert_peek(TokenKind::GREATER_THAN);
-    parser.assert_peek(TokenKind::ANNOTATION);
+    // Parse annotation
+    let mut annotation = Type::Void;
+    if parser.is_peek_token(TokenKind::MINUS) {
+        parser.assert_peek(TokenKind::MINUS);
+        parser.assert_peek(TokenKind::GREATER_THAN);
+        parser.assert_peek(TokenKind::ANNOTATION);
 
-    let annotation = parse_type(parser);
+        annotation = parse_type(parser);
+    }
 
     parser.assert_peek(TokenKind::LBRACE);
     
