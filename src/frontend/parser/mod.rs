@@ -58,6 +58,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier_expression);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
+    functions.insert(TokenKind::CHARACTER, parse_character_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
     functions.insert(TokenKind::TRUE, parse_boolean_literal);
     functions.insert(TokenKind::FALSE, parse_boolean_literal);
@@ -319,6 +320,31 @@ fn parse_number_literal(parser: &mut Parser) -> Box<ast::Expression> {
                     token: parser.get_current_token(),
                 },
                 value
+            }
+        )
+    )
+}
+
+fn parse_character_literal(parser: &mut Parser) -> Box<ast::Expression> {
+    if parser.current_token.value.len() > 1 {
+        parser.add_error(String::from("Character literal must be one character long"));
+    }
+
+    let character = match parser.current_token.value.chars().next() {
+        Some(character) => character,
+        None => {
+            parser.add_error(String::from("Character literal must not be empty"));
+            '\0'
+        },
+    };
+
+    Box::new(
+        ast::Expression::CharacterLiteral(
+            ast::CharacterLiteral {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
+                value: character
             }
         )
     )

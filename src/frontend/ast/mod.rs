@@ -34,6 +34,7 @@ pub struct ExpressionStatement {
 pub enum Expression {
     Identifier(Identifier),
     NumberLiteral(NumberLiteral),
+    CharacterLiteral(CharacterLiteral),
     StringLiteral(StringLiteral),
     BooleanLiteral(BooleanLiteral),
     Function(Function),
@@ -56,6 +57,11 @@ pub struct Identifier {
 pub struct NumberLiteral {
     pub node: Node,
     pub value: isize,
+}
+
+pub struct CharacterLiteral {
+    pub node: Node,
+    pub value: char,
 }
 
 pub struct StringLiteral {

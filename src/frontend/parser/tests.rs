@@ -44,6 +44,17 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_character_literal() {
+        // Normal character
+        let code = String::from("'c';");
+        test_parse(&code);
+
+        // Escaped character
+        let code = String::from("'\\';");
+        test_parse(&code);
+    }
+
+    #[test]
     fn test_parse_string_literal() {
         let code = String::from("let x = \"aD_67'le\";");
 
