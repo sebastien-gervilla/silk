@@ -257,7 +257,15 @@ fn parse_expression_statement(parser: &mut Parser) -> ast::Statement {
         }
     );
 
-    parser.assert_peek(TokenKind::SEMICOLON);
+    if parser.is_current_token(TokenKind::RBRACE) {
+        // At the end of a block, no semicolon should be added
+        if parser.is_peek_token(TokenKind::SEMICOLON) {
+            parser.add_error(String::from("Unexpected semicolon after block"));
+            parser.next_token();
+        }
+    } else {
+        parser.assert_peek(TokenKind::SEMICOLON);
+    }
 
     return expression
 }

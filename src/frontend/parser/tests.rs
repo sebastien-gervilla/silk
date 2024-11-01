@@ -62,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_boolean() {
+    fn test_parse_boolean_literal() {
         let code = String::from("true;");
         test_parse(&code);
 
@@ -131,7 +131,7 @@ mod tests {
         let code = String::from("
             if x == 1 {
                 2 + 4;
-            };
+            }
         ");
         test_parse(&code);
 
@@ -140,7 +140,7 @@ mod tests {
                 2 + 4;
             } else {
                 6 + 12;
-            };
+            }
         ");
         test_parse(&code);
 
@@ -151,7 +151,7 @@ mod tests {
                 6 + 12;
             } else {
                 32 - 1;
-            };
+            }
         ");
         test_parse(&code);
     }
@@ -161,7 +161,7 @@ mod tests {
         let code = String::from("
             while x > 1 {
                 2 + 4;
-            };
+            }
         ");
         test_parse(&code);
     }
@@ -171,7 +171,7 @@ mod tests {
         let code = String::from("
             fn myFunction() {
                 2 + 4;
-            };
+            }
         ");
         test_parse(&code);
 
