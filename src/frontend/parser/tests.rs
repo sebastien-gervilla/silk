@@ -25,8 +25,21 @@ mod tests {
 
     #[test]
     fn test_parse_let_statement() {
-        let code = String::from("let x = 10;");
+        // Initialized, with annotation
+        let code = String::from("let x: int = 10;");
+        test_parse(&code);
 
+        // Initialized, without annotation
+        let code = String::from("let x = 10;");
+        test_parse(&code);
+
+        // Uninitialized, with annotation
+        let code = String::from("let x: int;");
+        test_parse(&code);
+
+        // Uninitialized, without annotation
+        // (Semantic analysis will reject it)
+        let code = String::from("let x;");
         test_parse(&code);
     }
 

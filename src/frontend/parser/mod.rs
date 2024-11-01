@@ -214,7 +214,7 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
 
     let identifier = parse_identifier(parser);
 
-    let mut annotation : Option<Type> = None;
+    let mut annotation: Option<Type> = None;
 
     // Parsing annotation
     if parser.is_peek_token(TokenKind::COLON) {
@@ -223,22 +223,27 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
         annotation = Some(parse_type(parser));
     }
 
-    // TODO: Allow for initialization only
+    let mut statement = ast::LetStatement {
+        node,
+        identifier,
+        annotation,
+        expression: None
+    };
+
+    // Declaration without initialization
+    if !parser.is_peek_token(TokenKind::ASSIGN) {
+        parser.assert_peek(TokenKind::SEMICOLON);
+        return ast::Statement::Let(statement);
+    }
+
     parser.assert_peek(TokenKind::ASSIGN);
 
     parser.next_token();
-    let expression = parse_expression(parser, Precedence::LOWEST);
+    statement.expression = Some(parse_expression(parser, Precedence::LOWEST));
 
     parser.assert_peek(TokenKind::SEMICOLON);
 
-    ast::Statement::Let(
-        ast::LetStatement {
-            node,
-            identifier,
-            annotation,
-            expression: Some(expression)
-        }
-    )
+    return ast::Statement::Let(statement);
 }
 
 fn parse_expression_statement(parser: &mut Parser) -> ast::Statement {
