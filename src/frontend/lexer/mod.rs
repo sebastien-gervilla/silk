@@ -60,13 +60,8 @@ impl<'a> Lexer<'a> {
             },
             b';' => token.kind = TokenKind::SEMICOLON,
             b'\'' => {
-                self.next_character();
-                if self.get_next_character() == b'\'' {
-                    token.kind = TokenKind::CHARACTER;
-                    token.value = self.character.to_string();
-                    self.next_character();
-                }
-
+                token.kind = TokenKind::CHARACTER;
+                token.value = self.read_character();
             },
             b'"' => {
                 token.kind = TokenKind::STRING;
@@ -212,6 +207,20 @@ impl<'a> Lexer<'a> {
             self.next_character();
         }
 
+        return match String::from_utf8(self.code[initial_position..self.position].to_vec()) {
+            Ok(string) => string,
+            Err(error) => panic!("{error}")
+        };
+    }
+
+    fn read_character(&mut self) -> String {
+        let initial_position = self.position + 1;
+
+        self.next_character();
+        while self.character != b'\'' {
+            self.next_character();
+        }
+    
         return match String::from_utf8(self.code[initial_position..self.position].to_vec()) {
             Ok(string) => string,
             Err(error) => panic!("{error}")
