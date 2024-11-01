@@ -201,7 +201,6 @@ impl VM {
 
     fn run_constant_operation(&mut self) {
         let constant = self.read_constant();
-        println!("PUSHED {:?}", constant);
         self.stack_push(constant);
     }
 
