@@ -155,6 +155,7 @@ impl<'a> Compiler<'a> {
         );
     }
 
+    // TODO: separate this function into closures vs top-level ones
     fn compile_function(&mut self, function: &ast::Function) {
 
         let mut constant: Option<u8> = None;
