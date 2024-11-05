@@ -54,7 +54,7 @@ type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
 type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
-    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(11);
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(12);
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier_expression);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
@@ -65,6 +65,8 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 
     functions.insert(TokenKind::FUNCTION, parse_function);
     functions.insert(TokenKind::RETURN, parse_return_expression);
+    
+    functions.insert(TokenKind::LBRACKET, parse_array_expression);
 
     functions.insert(TokenKind::LPAREN, parse_grouped_expression);
     functions.insert(TokenKind::LBRACE, parse_block_expression);
@@ -560,6 +562,44 @@ fn parse_assignment_expression(parser: &mut Parser, expression: Box<ast::Express
             }
         )
     )
+}
+
+fn parse_array_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    let elements = parse_array_elements(parser);
+
+    parser.assert_peek(TokenKind::RBRACKET);
+
+    return Box::new(
+        ast::Expression::Array(
+            ast::ArrayExpression {
+                node,
+                elements,
+            }
+        )
+    )
+}
+
+fn parse_array_elements(parser: &mut Parser) -> Vec<Box<ast::Expression>> {
+    let mut arguments = Vec::<Box<ast::Expression>>::new();
+
+    if parser.is_peek_token(TokenKind::RBRACKET) {
+        return arguments
+    }
+
+    parser.next_token();
+    arguments.push(parse_expression(parser, Precedence::LOWEST));
+
+    while !parser.is_peek_token(TokenKind::RBRACKET) {
+        parser.assert_peek(TokenKind::COMMA);
+        parser.next_token();
+        arguments.push(parse_expression(parser, Precedence::LOWEST));
+    }
+    
+    return arguments
 }
 
 fn parse_block_expression(parser: &mut Parser) -> Box<ast::Expression> {
