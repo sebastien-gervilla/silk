@@ -158,16 +158,19 @@ impl<'a> Compiler<'a> {
     // TODO: separate this function into closures vs top-level ones
     fn compile_function(&mut self, function: &ast::Function) {
 
-        let mut constant: Option<u8> = None;
-        if self.depth > 0 {
+        let mut is_closure = false;
+        let index = if self.depth > 0 {
             let index = self.declare_local_variable(&function.identifier);
 
             match &mut self.locals[index] {
                 Some(local) => local.is_initialized = true,
                 None => panic!("Function not found after initialization"),
             }
+
+            is_closure = true;
+            index as u8
         } else {
-            let constant_index = self.function.chunk.push_constant(
+            self.function.chunk.push_constant(
                 Value::Object(
                     Object::String(
                         StringObject {
@@ -176,10 +179,8 @@ impl<'a> Compiler<'a> {
                         }
                     )
                 )
-            );
-
-            constant = Some(constant_index);
-        }
+            )
+        };
 
         let function_object = &mut FunctionObject {
             chunk: Chunk::new(),
@@ -196,9 +197,12 @@ impl<'a> Compiler<'a> {
 
         self.function.chunk.add_constant(Value::Object(Object::Function(function_object.clone())), function.node.token.line);
 
-        if let Some(constant_index) = constant {
+        if !is_closure {
             self.function.chunk.add_operation(OperationCode::SET_GLOBAL, function.node.token.line);
-            self.function.chunk.add_instruction(constant_index, function.node.token.line);
+            self.function.chunk.add_instruction(index, function.node.token.line);
+        } else {
+            self.function.chunk.add_operation(OperationCode::SET_LOCAL, function.node.token.line);
+            self.function.chunk.add_instruction(index, function.node.token.line);
         }
     }
 
