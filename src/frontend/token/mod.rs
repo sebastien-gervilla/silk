@@ -36,6 +36,8 @@ pub enum TokenKind {
 	RPAREN,
 	LBRACE,
 	RBRACE,
+	LBRACKET,
+	RBRACKET,
 
     // Operators
     ASSIGN,

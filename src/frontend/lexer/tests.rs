@@ -94,4 +94,23 @@ mod tests {
         ];
         test_lex(&code, &expected_tokens);
     }
+
+    #[test]
+    fn test_read_brackets() {
+        let code = "[]".to_string();
+        let expected_tokens = vec![
+            TokenKind::LBRACKET,
+            TokenKind::RBRACKET,
+        ];
+        test_lex(&code, &expected_tokens);
+
+        let code = "identifier[0]".to_string();
+        let expected_tokens = vec![
+            TokenKind::IDENTIFIER,
+            TokenKind::LBRACKET,
+            TokenKind::NUMBER,
+            TokenKind::RBRACKET,
+        ];
+        test_lex(&code, &expected_tokens);
+    }
 }
