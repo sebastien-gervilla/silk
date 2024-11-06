@@ -225,7 +225,7 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
     // Parsing annotation
     if parser.is_peek_token(TokenKind::COLON) {
         parser.assert_peek(TokenKind::COLON);
-        parser.assert_peek(TokenKind::ANNOTATION);
+        parser.next_token();
         annotation = Some(parse_type(parser));
     }
 
@@ -409,7 +409,7 @@ fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
     if parser.is_peek_token(TokenKind::MINUS) {
         parser.assert_peek(TokenKind::MINUS);
         parser.assert_peek(TokenKind::GREATER_THAN);
-        parser.assert_peek(TokenKind::ANNOTATION);
+        parser.next_token();
 
         annotation = parse_type(parser);
     }
@@ -459,7 +459,7 @@ fn parse_function_parameters(parser: &mut Parser) -> Vec<ast::FunctionParameter>
     let identifier = parse_identifier(parser);
     
     parser.assert_peek(TokenKind::COLON);
-    parser.assert_peek(TokenKind::ANNOTATION);
+    parser.next_token();
 
     parameters.push(
         ast::FunctionParameter {
@@ -475,7 +475,7 @@ fn parse_function_parameters(parser: &mut Parser) -> Vec<ast::FunctionParameter>
         let identifier = parse_identifier(parser);
 
         parser.assert_peek(TokenKind::COLON);
-        parser.assert_peek(TokenKind::ANNOTATION);
+        parser.next_token();
         parameters.push(
             ast::FunctionParameter {
                 identifier,
@@ -773,13 +773,23 @@ fn parse_index_expression(parser: &mut Parser, left_expression: Box<ast::Express
 // Types
 
 fn parse_type(parser: &mut Parser) -> Type {
+    match parser.current_token.kind {
+        TokenKind::PRIMITIVE_TYPE => parse_primitive_type(parser),
+        _ => {
+            parser.add_error(format!("Invalid type '{}'", parser.current_token.value));
+            Type::Integer
+        },
+    }
+}
+
+fn parse_primitive_type(parser: &mut Parser) -> Type {
     match parser.current_token.value.as_str() {
         "int" => Type::Integer,
         "bool" => Type::Boolean,
         "void" => Type::Void,
         _ => {
-            parser.add_error(format!("Invalid type '{}'", parser.current_token.value));
-            Type::Integer
+            parser.add_error(format!("Invalid primitive type '{}'", parser.current_token.value));
+            Type::None
         },
     }
 }
