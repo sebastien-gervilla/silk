@@ -184,4 +184,21 @@ mod tests {
         test_typecheck(code);
     }
 
+    #[test]
+    fn test_typecheck_array_expression() {
+        let code = "
+            let x: [int] = [1, 2, 3];
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_typecheck_wrong_array_expression() {
+        let code = "
+            let x: [bool] = [true, 2, 3];
+        ";
+        test_typecheck(code);
+    }
+
 }

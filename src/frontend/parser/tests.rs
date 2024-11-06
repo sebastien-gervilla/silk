@@ -266,4 +266,15 @@ mod tests {
         test_parse(&code);
     }
 
+    // Types
+
+    #[test]
+    fn test_parse_array_type() {
+        let code = String::from("
+            let x: [bool];
+            let y: [[int]];
+        ");
+        test_parse(&code);
+    }
+
 }
