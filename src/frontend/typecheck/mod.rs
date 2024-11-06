@@ -433,6 +433,7 @@ fn check_return_expression(symbol_table: &SymbolTable, expression: &ast::ReturnE
 }
 
 fn check_index_expression(symbol_table: &mut SymbolTable, expression: &ast::IndexExpression, expected_type: Type) {
+    check_expression(symbol_table, &expression.index, Type::Integer);
     let indexed_type = synthesize_expression(symbol_table, &expression.indexed);
 
     match indexed_type {
