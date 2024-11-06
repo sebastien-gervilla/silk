@@ -1,4 +1,7 @@
-use crate::{token::Token, typecheck::types::Type};
+use super::{
+    token::Token,
+    typecheck::types::Type,
+};
 
 pub struct Node {
     pub token: Token,
@@ -31,18 +34,21 @@ pub struct ExpressionStatement {
 pub enum Expression {
     Identifier(Identifier),
     NumberLiteral(NumberLiteral),
+    CharacterLiteral(CharacterLiteral),
     StringLiteral(StringLiteral),
     BooleanLiteral(BooleanLiteral),
     Function(Function),
     Prefix(PrefixExpression),
     Infix(InfixExpression),
     Assign(AssignmentExpression),
+    Array(ArrayExpression),
     Block(BlockExpression),
     If(IfExpression),
     While(WhileExpression),
     Call(CallExpression),
     Return(ReturnExpression),
     Access(AccessExpression),
+    Index(IndexExpression),
 }
 
 pub struct Identifier {
@@ -53,6 +59,11 @@ pub struct Identifier {
 pub struct NumberLiteral {
     pub node: Node,
     pub value: isize,
+}
+
+pub struct CharacterLiteral {
+    pub node: Node,
+    pub value: char,
 }
 
 pub struct StringLiteral {
@@ -97,6 +108,11 @@ pub struct AssignmentExpression {
     pub expression: Box<Expression>,
 }
 
+pub struct ArrayExpression {
+    pub node: Node,
+    pub elements: Vec<Box<Expression>>,
+}
+
 pub struct BlockExpression {
     pub node: Node,
     pub statements: Vec<Statement>,
@@ -130,4 +146,10 @@ pub struct AccessExpression {
     pub node: Node,
     pub left_expression: Box<Expression>,
     pub right_expression: Box<Expression>,
+}
+
+pub struct IndexExpression {
+    pub node: Node,
+    pub indexed: Box<Expression>,
+    pub index: Box<Expression>,
 }

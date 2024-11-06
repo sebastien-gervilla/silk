@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use types::Type;
 
-use crate::ast;
+use super::ast;
 
 #[derive(Clone)]
 enum Symbol {

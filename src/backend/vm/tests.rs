@@ -1,11 +1,21 @@
 #[cfg(test)]
 mod tests {
-    use crate::{compiler::{
+    use crate::backend::{
         bytecode::{
             Chunk,
             OperationCode
-        }, object::FunctionObject, value::Value, vm::VM, Compiler
-    }, lexer::Lexer, parser::{parse_file, Parser}, typecheck::check_program};
+        }, 
+        object::FunctionObject, 
+        value::Value, 
+        vm::VM, 
+        compiler::Compiler,
+    };
+
+    use crate::frontend::{
+        lexer::Lexer, 
+        parser::{parse_file, Parser}, 
+        typecheck::check_program,
+    };
 
     #[test]
     fn test_bytecode() {

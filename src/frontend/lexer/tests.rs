@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::{lexer::Lexer, token::TokenKind};
+    use crate::frontend::{
+        lexer::Lexer, 
+        token::TokenKind
+    };
 
     fn test_lex(code: &String, expected_tokens: &Vec<TokenKind>) {
         let mut lexer = Lexer::new(&code);
@@ -88,6 +91,25 @@ mod tests {
             TokenKind::IDENTIFIER,
             TokenKind::DOUBLECOLON,
             TokenKind::IDENTIFIER,
+        ];
+        test_lex(&code, &expected_tokens);
+    }
+
+    #[test]
+    fn test_read_brackets() {
+        let code = "[]".to_string();
+        let expected_tokens = vec![
+            TokenKind::LBRACKET,
+            TokenKind::RBRACKET,
+        ];
+        test_lex(&code, &expected_tokens);
+
+        let code = "identifier[0]".to_string();
+        let expected_tokens = vec![
+            TokenKind::IDENTIFIER,
+            TokenKind::LBRACKET,
+            TokenKind::NUMBER,
+            TokenKind::RBRACKET,
         ];
         test_lex(&code, &expected_tokens);
     }

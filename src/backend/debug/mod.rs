@@ -1,6 +1,7 @@
-use crate::compiler::bytecode::OperationCode;
-
-use super::bytecode::Chunk;
+use super::bytecode::{
+    OperationCode,
+    Chunk,
+};
 
 pub fn disassemble_chunk(chunk: &Chunk, name: &str) {
     println!("===== {} =====", name);
@@ -22,7 +23,7 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
     let instruction = OperationCode::from_u8(chunk.code[offset]);
 
     match instruction {
-        OperationCode::CONSTANT => return handle_constant_instruction(chunk, offset),
+        OperationCode::CONSTANT => return handle_constant_instruction("CONSTANT", chunk, offset),
         OperationCode::TRUE => return handle_simple_instruction("TRUE", offset),
         OperationCode::FALSE => return handle_simple_instruction("FALSE", offset),
         OperationCode::ADD => return handle_simple_instruction("ADD", offset),
@@ -35,8 +36,8 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
         OperationCode::LESS => return handle_simple_instruction("LESS", offset),
         OperationCode::NOT => return handle_simple_instruction("NOT", offset),
         OperationCode::NEGATE => return handle_simple_instruction("NEGATE", offset),
-        OperationCode::SET_GLOBAL => return handle_constant_instruction(chunk, offset),
-        OperationCode::GET_GLOBAL => return handle_constant_instruction(chunk, offset),
+        OperationCode::SET_GLOBAL => return handle_constant_instruction("SET_GLOBAL", chunk, offset),
+        OperationCode::GET_GLOBAL => return handle_constant_instruction("GET_GLOBAL", chunk, offset),
         OperationCode::SET_LOCAL => return handle_byte_instruction("SET_LOCAL", chunk, offset),
         OperationCode::GET_LOCAL => return handle_byte_instruction("GET_LOCAL", chunk, offset),
         OperationCode::JUMP => return handle_jump_instruction("JUMP", chunk, offset, 1),
@@ -62,11 +63,11 @@ fn handle_byte_instruction(name: &str, chunk: &Chunk, offset: usize) -> usize {
     return offset + 2
 }
 
-fn handle_constant_instruction(chunk: &Chunk, offset: usize) -> usize {
+fn handle_constant_instruction(name: &str, chunk: &Chunk, offset: usize) -> usize {
     let constant_index = chunk.code[offset + 1];
     
     println!(
-        "CONSTANT (VALUE: {:?}, index: {}) ", 
+        "{name} (VALUE: {:?}, index: {}) ", 
         chunk.contants[constant_index as usize], 
         constant_index
     );

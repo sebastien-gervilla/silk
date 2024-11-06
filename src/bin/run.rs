@@ -12,12 +12,14 @@ use silk::frontend::{
     parser::{
         parse_file, 
         Parser
-    }, 
-    token::TokenKind, 
+    },
     typecheck::check_program,
 };
 
 fn main() {
+
+    let args: Vec<String> = env::args().collect();
+    let file_path = &args[1];
 
     let current_directory = match env::current_dir() {
         Ok(path) => {
@@ -27,7 +29,7 @@ fn main() {
         Err(error) => panic!("Couldn't get current working directory : {error}"),
     };
 
-    let code_path = current_directory.join("tests/input.silk");
+    let code_path = current_directory.join(file_path);
 
     let code = match fs::read_to_string(code_path) {
         Ok(code) => code,
@@ -45,10 +47,8 @@ fn main() {
 
         panic!("Found parsing errors.");
     }
-    println!("Parsing completed.");
 
     check_program(&ast);
-    println!("Typechecking completed.");
 
     let function = &mut FunctionObject {
         chunk: Chunk::new(),
@@ -61,16 +61,4 @@ fn main() {
 
     let mut vm = VM::new(function);
     vm.run();
-}
-
-#[allow(dead_code)]
-fn print_lexed_code(code: &String) {
-    let mut lexer = Lexer::new(code);
-
-    let mut token = lexer.next_token();
-    println!("Starting lexing...");
-    while token.kind != TokenKind::EOF {
-        println!("Token {:?}: {}", token.kind, token.value);
-        token = lexer.next_token();
-    }
 }

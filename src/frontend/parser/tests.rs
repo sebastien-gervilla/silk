@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::{
+    use crate::frontend::{
         lexer::Lexer, 
         parser::{
             parse_file, 
@@ -16,7 +16,7 @@ mod tests {
 
         if parser.errors.len() > 0 {
             for error in parser.errors {
-                println!("{error}");
+                println!("Parsing error: {error}");
             }
 
             panic!("Found parsing errors.");
@@ -25,8 +25,32 @@ mod tests {
 
     #[test]
     fn test_parse_let_statement() {
-        let code = String::from("let x = 10;");
+        // Initialized, with annotation
+        let code = String::from("let x: int = 10;");
+        test_parse(&code);
 
+        // Initialized, without annotation
+        let code = String::from("let x = 10;");
+        test_parse(&code);
+
+        // Uninitialized, with annotation
+        let code = String::from("let x: int;");
+        test_parse(&code);
+
+        // Uninitialized, without annotation
+        // (Semantic analysis will reject it)
+        let code = String::from("let x;");
+        test_parse(&code);
+    }
+
+    #[test]
+    fn test_parse_character_literal() {
+        // Normal character
+        let code = String::from("'c';");
+        test_parse(&code);
+
+        // Escaped character
+        let code = String::from("'\\';");
         test_parse(&code);
     }
 
@@ -38,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_boolean() {
+    fn test_parse_boolean_literal() {
         let code = String::from("true;");
         test_parse(&code);
 
@@ -107,7 +131,7 @@ mod tests {
         let code = String::from("
             if x == 1 {
                 2 + 4;
-            };
+            }
         ");
         test_parse(&code);
 
@@ -116,7 +140,7 @@ mod tests {
                 2 + 4;
             } else {
                 6 + 12;
-            };
+            }
         ");
         test_parse(&code);
 
@@ -127,7 +151,7 @@ mod tests {
                 6 + 12;
             } else {
                 32 - 1;
-            };
+            }
         ");
         test_parse(&code);
     }
@@ -137,7 +161,7 @@ mod tests {
         let code = String::from("
             while x > 1 {
                 2 + 4;
-            };
+            }
         ");
         test_parse(&code);
     }
@@ -147,14 +171,14 @@ mod tests {
         let code = String::from("
             fn myFunction() {
                 2 + 4;
-            };
+            }
         ");
         test_parse(&code);
 
         let code = String::from("
-            fn myFunction(a, b, c) {
-                2 + 4;
-            };
+            fn myFunction(a: int, b: int) -> int {
+                return a + b;
+            }
         ");
         test_parse(&code);
     }
@@ -204,6 +228,19 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_array_expression() {
+        let code = String::from("
+            [1, call(), 'c'];
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            let x = [];
+        ");
+        test_parse(&code);
+    }
+
+    #[test]
     fn test_parse_access_expression() {
         let code = String::from("
             x::y;
@@ -212,6 +249,19 @@ mod tests {
 
         let code = String::from("
             z::call();
+        ");
+        test_parse(&code);
+    }
+
+    #[test]
+    fn test_parse_index_expression() {
+        let code = String::from("
+            indexed[index];
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            array[call()];
         ");
         test_parse(&code);
     }

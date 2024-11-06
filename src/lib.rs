@@ -1,6 +1,2 @@
-pub mod token;
-pub mod lexer;
-pub mod ast;
-pub mod parser;
-pub mod compiler;
-pub mod typecheck;
+pub mod frontend;
+pub mod backend;

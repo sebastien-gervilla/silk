@@ -2,10 +2,11 @@ pub mod tests;
 
 use std::collections::HashMap;
 
-use crate::{
+use super::{
     ast,
     lexer::Lexer,
-    token::{Token, TokenKind}, typecheck::types::Type
+    token::{Token, TokenKind}, 
+    typecheck::types::Type
 };
 
 // Precedences
@@ -21,13 +22,14 @@ pub enum Precedence {
 	PRODUCT,        // *, /
 	PREFIX,         // -expression, !expression
 	ACCESS,         // expression::expression
+	INDEX,          // identifier[expression]
 	CALL,           // identifier(expression, expression)
 }
 
 type Precedences = HashMap<TokenKind, Precedence>;
 
 fn get_precedences() -> Precedences {
-    let mut precedences = Precedences::with_capacity(12);
+    let mut precedences = Precedences::with_capacity(13);
 
     precedences.insert(TokenKind::ASSIGN, Precedence::ASSIGNMENT);
     precedences.insert(TokenKind::OR, Precedence::OR);
@@ -41,6 +43,7 @@ fn get_precedences() -> Precedences {
     precedences.insert(TokenKind::ASTERISK, Precedence::PRODUCT);
     precedences.insert(TokenKind::SLASH, Precedence::PRODUCT);
     precedences.insert(TokenKind::DOUBLECOLON, Precedence::ACCESS);
+    precedences.insert(TokenKind::LBRACKET, Precedence::INDEX);
     precedences.insert(TokenKind::LPAREN, Precedence::CALL);
 
     precedences
@@ -53,16 +56,19 @@ type PrefixParsingFunctions = HashMap<TokenKind, PrefixParsingFunction>;
 type InfixParsingFunctions = HashMap<TokenKind, InfixParsingFunction>;
 
 fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
-    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(11);
+    let mut functions: PrefixParsingFunctions = HashMap::with_capacity(12);
 
     functions.insert(TokenKind::IDENTIFIER, parse_identifier_expression);
     functions.insert(TokenKind::NUMBER, parse_number_literal);
+    functions.insert(TokenKind::CHARACTER, parse_character_literal);
     functions.insert(TokenKind::STRING, parse_string_literal);
     functions.insert(TokenKind::TRUE, parse_boolean_literal);
     functions.insert(TokenKind::FALSE, parse_boolean_literal);
 
     functions.insert(TokenKind::FUNCTION, parse_function);
     functions.insert(TokenKind::RETURN, parse_return_expression);
+    
+    functions.insert(TokenKind::LBRACKET, parse_array_expression);
 
     functions.insert(TokenKind::LPAREN, parse_grouped_expression);
     functions.insert(TokenKind::LBRACE, parse_block_expression);
@@ -76,7 +82,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(12);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(13);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
@@ -91,6 +97,7 @@ fn get_infix_parsing_functions() -> InfixParsingFunctions {
 
     functions.insert(TokenKind::ASSIGN, parse_assignment_expression);
     functions.insert(TokenKind::DOUBLECOLON, parse_access_expression);
+    functions.insert(TokenKind::LBRACKET, parse_index_expression);
     
     functions.insert(TokenKind::LPAREN, parse_call_expression);
 
@@ -213,7 +220,7 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
 
     let identifier = parse_identifier(parser);
 
-    let mut annotation : Option<Type> = None;
+    let mut annotation: Option<Type> = None;
 
     // Parsing annotation
     if parser.is_peek_token(TokenKind::COLON) {
@@ -222,22 +229,27 @@ fn parse_let_stament(parser: &mut Parser) -> ast::Statement {
         annotation = Some(parse_type(parser));
     }
 
-    // TODO: Allow for initialization only
+    let mut statement = ast::LetStatement {
+        node,
+        identifier,
+        annotation,
+        expression: None
+    };
+
+    // Declaration without initialization
+    if !parser.is_peek_token(TokenKind::ASSIGN) {
+        parser.assert_peek(TokenKind::SEMICOLON);
+        return ast::Statement::Let(statement);
+    }
+
     parser.assert_peek(TokenKind::ASSIGN);
 
     parser.next_token();
-    let expression = parse_expression(parser, Precedence::LOWEST);
+    statement.expression = Some(parse_expression(parser, Precedence::LOWEST));
 
     parser.assert_peek(TokenKind::SEMICOLON);
 
-    ast::Statement::Let(
-        ast::LetStatement {
-            node,
-            identifier,
-            annotation,
-            expression: Some(expression)
-        }
-    )
+    return ast::Statement::Let(statement);
 }
 
 fn parse_expression_statement(parser: &mut Parser) -> ast::Statement {
@@ -250,7 +262,15 @@ fn parse_expression_statement(parser: &mut Parser) -> ast::Statement {
         }
     );
 
-    parser.assert_peek(TokenKind::SEMICOLON);
+    if parser.is_current_token(TokenKind::RBRACE) {
+        // At the end of a block, no semicolon should be added
+        if parser.is_peek_token(TokenKind::SEMICOLON) {
+            parser.add_error(String::from("Unexpected semicolon after block"));
+            parser.next_token();
+        }
+    } else {
+        parser.assert_peek(TokenKind::SEMICOLON);
+    }
 
     return expression
 }
@@ -318,6 +338,31 @@ fn parse_number_literal(parser: &mut Parser) -> Box<ast::Expression> {
     )
 }
 
+fn parse_character_literal(parser: &mut Parser) -> Box<ast::Expression> {
+    if parser.current_token.value.len() > 1 {
+        parser.add_error(String::from("Character literal must be one character long"));
+    }
+
+    let character = match parser.current_token.value.chars().next() {
+        Some(character) => character,
+        None => {
+            parser.add_error(String::from("Character literal must not be empty"));
+            '\0'
+        },
+    };
+
+    Box::new(
+        ast::Expression::CharacterLiteral(
+            ast::CharacterLiteral {
+                node: ast::Node {
+                    token: parser.get_current_token(),
+                },
+                value: character
+            }
+        )
+    )
+}
+
 fn parse_string_literal(parser: &mut Parser) -> Box<ast::Expression> {
     Box::new(
         ast::Expression::StringLiteral(
@@ -359,11 +404,15 @@ fn parse_function(parser: &mut Parser) -> Box<ast::Expression> {
 
     parser.assert_peek(TokenKind::RPAREN);
 
-    parser.assert_peek(TokenKind::MINUS);
-    parser.assert_peek(TokenKind::GREATER_THAN);
-    parser.assert_peek(TokenKind::ANNOTATION);
+    // Parse annotation
+    let mut annotation = Type::Void;
+    if parser.is_peek_token(TokenKind::MINUS) {
+        parser.assert_peek(TokenKind::MINUS);
+        parser.assert_peek(TokenKind::GREATER_THAN);
+        parser.assert_peek(TokenKind::ANNOTATION);
 
-    let annotation = parse_type(parser);
+        annotation = parse_type(parser);
+    }
 
     parser.assert_peek(TokenKind::LBRACE);
     
@@ -400,7 +449,7 @@ fn parse_return_expression(parser: &mut Parser) -> Box<ast::Expression> {
 }
 
 fn parse_function_parameters(parser: &mut Parser) -> Vec<ast::FunctionParameter> {
-    let mut parameters = Vec::<ast::FunctionParameter>::new();
+    let mut parameters = vec![];
 
     if parser.is_peek_token(TokenKind::RPAREN) {
         return parameters
@@ -516,6 +565,44 @@ fn parse_assignment_expression(parser: &mut Parser, expression: Box<ast::Express
             }
         )
     )
+}
+
+fn parse_array_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    let elements = parse_array_elements(parser);
+
+    parser.assert_peek(TokenKind::RBRACKET);
+
+    return Box::new(
+        ast::Expression::Array(
+            ast::ArrayExpression {
+                node,
+                elements,
+            }
+        )
+    )
+}
+
+fn parse_array_elements(parser: &mut Parser) -> Vec<Box<ast::Expression>> {
+    let mut arguments = Vec::<Box<ast::Expression>>::new();
+
+    if parser.is_peek_token(TokenKind::RBRACKET) {
+        return arguments
+    }
+
+    parser.next_token();
+    arguments.push(parse_expression(parser, Precedence::LOWEST));
+
+    while !parser.is_peek_token(TokenKind::RBRACKET) {
+        parser.assert_peek(TokenKind::COMMA);
+        parser.next_token();
+        arguments.push(parse_expression(parser, Precedence::LOWEST));
+    }
+    
+    return arguments
 }
 
 fn parse_block_expression(parser: &mut Parser) -> Box<ast::Expression> {
@@ -661,12 +748,35 @@ fn parse_access_expression(parser: &mut Parser, left_expression: Box<ast::Expres
     )
 }
 
+fn parse_index_expression(parser: &mut Parser, left_expression: Box<ast::Expression>) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+
+    let index_expression = parse_expression(parser, Precedence::LOWEST);
+
+    parser.assert_peek(TokenKind::RBRACKET);
+
+    return Box::new(
+        ast::Expression::Index(
+            ast::IndexExpression {
+                node,
+                indexed: left_expression,
+                index: index_expression,
+            }
+        )
+    )
+}
+
 // Types
 
 fn parse_type(parser: &mut Parser) -> Type {
     match parser.current_token.value.as_str() {
         "int" => Type::Integer,
         "bool" => Type::Boolean,
+        "void" => Type::Void,
         _ => {
             parser.add_error(format!("Invalid type '{}'", parser.current_token.value));
             Type::Integer
