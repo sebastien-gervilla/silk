@@ -8,8 +8,6 @@ use crate::backend::{
 
 use crate::frontend::ast;
 
-use super::object::ArrayObject;
-
 const LOCALS_SIZE: usize = 256;
 
 pub struct Compiler<'a> {
@@ -106,6 +104,7 @@ impl<'a> Compiler<'a> {
             ast::Expression::While(expression) => self.compile_while_expression(expression),
             ast::Expression::Call(expression) => self.compile_call_expression(expression),
             ast::Expression::Return(expression) => self.compile_return_expression(expression),
+            ast::Expression::Index(expression) => self.compile_index_expression(expression),
             _ => todo!()
         }
     }
@@ -398,6 +397,15 @@ impl<'a> Compiler<'a> {
     fn compile_return_expression(&mut self, expression: &ast::ReturnExpression) {
         self.compile_expression(&expression.expression);
         self.function.chunk.add_operation(OperationCode::RETURN, expression.node.token.line);
+    }
+
+    fn compile_index_expression(&mut self, expression: &ast::IndexExpression) {
+        self.compile_expression(&expression.indexed);
+        self.compile_expression(&expression.index);
+        self.function.chunk.add_operation(
+            OperationCode::INDEX_ARRAY, 
+            expression.node.token.line
+        );
     }
 
     // Utils

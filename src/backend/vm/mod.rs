@@ -123,6 +123,7 @@ impl VM {
                 OperationCode::LOOP => self.run_loop(),
                 OperationCode::CALL => self.run_call_operation(),
                 OperationCode::BUILD_ARRAY => self.run_build_array_operation(),
+                OperationCode::INDEX_ARRAY => self.run_index_array_operation(),
                 OperationCode::POP => { self.stack_pop(); },
                 OperationCode::UNKNOW => panic!("Unknow instruction"),
             };
@@ -309,6 +310,25 @@ impl VM {
                 Object::Array(array)
             )
         );
+    }
+
+    fn run_index_array_operation(&mut self) {
+        let index = match self.stack_pop() {
+            Value::F64(index) => index as usize,
+            unexpected => panic!("Expected index to be int, instead got {:?}", unexpected),
+        };
+
+        let array = match self.stack_pop() {
+            Value::Object(object) => {
+                match object {
+                    Object::Array(array) => array,
+                    unexpected => panic!("Expected array, instead got {:?}", unexpected),
+                }
+            },
+            unexpected => panic!("Expected array, instead got {:?}", unexpected),
+        };
+
+        self.stack_push(array.elements[index].clone());
     }
 
     fn run_return_operation(&mut self) -> bool {
