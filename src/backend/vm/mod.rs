@@ -300,7 +300,6 @@ impl VM {
             );
         }
 
-        self.stack_pop();
         for _ in 0..array_length {
             self.stack_pop();
         }
