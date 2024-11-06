@@ -51,7 +51,9 @@ pub enum TokenKind {
     WHILE,
     FUNCTION,
     RETURN,
-    ANNOTATION,
+
+    // Types
+    PRIMITIVE_TYPE,
 }
 
 pub type Keywords = HashMap<&'static str, TokenKind>;
@@ -68,9 +70,9 @@ pub fn get_keywords() -> Keywords {
     keywords.insert("fn", TokenKind::FUNCTION);
     keywords.insert("return", TokenKind::RETURN);
 
-    keywords.insert("int", TokenKind::ANNOTATION);
-    keywords.insert("bool", TokenKind::ANNOTATION);
-    keywords.insert("void", TokenKind::ANNOTATION);
+    keywords.insert("int", TokenKind::PRIMITIVE_TYPE);
+    keywords.insert("bool", TokenKind::PRIMITIVE_TYPE);
+    keywords.insert("void", TokenKind::PRIMITIVE_TYPE);
 
     return keywords
 }
