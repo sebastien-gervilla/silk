@@ -86,6 +86,8 @@ impl<'a> Lexer<'a> {
             b'}' => token.kind = TokenKind::RBRACE,
             b'(' => token.kind = TokenKind::LPAREN,
             b')' => token.kind = TokenKind::RPAREN,
+            b'[' => token.kind = TokenKind::LBRACKET,
+            b']' => token.kind = TokenKind::RBRACKET,
             b',' => token.kind = TokenKind::COMMA,
             b':' => {
                 if self.get_next_character() == b':' {

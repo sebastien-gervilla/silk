@@ -41,12 +41,14 @@ pub enum Expression {
     Prefix(PrefixExpression),
     Infix(InfixExpression),
     Assign(AssignmentExpression),
+    Array(ArrayExpression),
     Block(BlockExpression),
     If(IfExpression),
     While(WhileExpression),
     Call(CallExpression),
     Return(ReturnExpression),
     Access(AccessExpression),
+    Index(IndexExpression),
 }
 
 pub struct Identifier {
@@ -106,6 +108,11 @@ pub struct AssignmentExpression {
     pub expression: Box<Expression>,
 }
 
+pub struct ArrayExpression {
+    pub node: Node,
+    pub elements: Vec<Box<Expression>>,
+}
+
 pub struct BlockExpression {
     pub node: Node,
     pub statements: Vec<Statement>,
@@ -139,4 +146,10 @@ pub struct AccessExpression {
     pub node: Node,
     pub left_expression: Box<Expression>,
     pub right_expression: Box<Expression>,
+}
+
+pub struct IndexExpression {
+    pub node: Node,
+    pub indexed: Box<Expression>,
+    pub index: Box<Expression>,
 }

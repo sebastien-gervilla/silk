@@ -228,6 +228,19 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_array_expression() {
+        let code = String::from("
+            [1, call(), 'c'];
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            let x = [];
+        ");
+        test_parse(&code);
+    }
+
+    #[test]
     fn test_parse_access_expression() {
         let code = String::from("
             x::y;
@@ -236,6 +249,19 @@ mod tests {
 
         let code = String::from("
             z::call();
+        ");
+        test_parse(&code);
+    }
+
+    #[test]
+    fn test_parse_index_expression() {
+        let code = String::from("
+            indexed[index];
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            array[call()];
         ");
         test_parse(&code);
     }
