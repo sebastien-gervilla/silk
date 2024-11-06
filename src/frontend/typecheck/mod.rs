@@ -211,6 +211,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::While(expression) => check_while_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         ast::Expression::Return(expression) => check_return_expression(symbol_table, expression),
+        ast::Expression::Index(expression) => check_index_expression(symbol_table, expression, expected_type),
         _ => todo!()
     }
 }
@@ -431,6 +432,19 @@ fn check_return_expression(symbol_table: &SymbolTable, expression: &ast::ReturnE
     }
 }
 
+fn check_index_expression(symbol_table: &mut SymbolTable, expression: &ast::IndexExpression, expected_type: Type) {
+    let indexed_type = synthesize_expression(symbol_table, &expression.indexed);
+
+    match indexed_type {
+        Type::Array(array_type) => {
+            if array_type.as_ref() != &expected_type {
+                panic!("Type error: Expected type {:?}, got {:?} instead.", expected_type, array_type);
+            }
+        },
+        actual_type => panic!("Type error: Expected type array, got {:?} instead.", actual_type),
+    }
+}
+
 // Synthesizing
 
 fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expression) -> Type {
@@ -453,6 +467,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
             // TODO: synthesize_expression must return an optional type
             // synthesize_expression(symbol_table, &expression.expression)
         },
+        ast::Expression::Index(expression) => synthesize_index_expression(symbol_table, expression),
         _ => todo!(),
     }
 }
@@ -549,4 +564,13 @@ fn synthesize_call_expression(symbol_table: &SymbolTable, expression: &ast::Call
     };
 
     return function_symbol.return_type.clone()
+}
+
+fn synthesize_index_expression(symbol_table: &SymbolTable, expression: &ast::IndexExpression) -> Type {
+    let indexed_type = synthesize_expression(symbol_table, &expression.indexed);
+
+    match indexed_type {
+        Type::Array(array_type) => *array_type,
+        actual_type => panic!("Type error: Expected type array, got {:?} instead.", actual_type),
+    }
 }
