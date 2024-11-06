@@ -25,6 +25,7 @@ pub enum OperationCode {
     JUMP_IF_FALSE,
     LOOP,
     CALL,
+    BUILD_ARRAY,
     RETURN,
     POP,
 }
@@ -53,8 +54,9 @@ impl OperationCode {
             19 => OperationCode::JUMP_IF_FALSE,
             20 => OperationCode::LOOP,
             21 => OperationCode::CALL,
-            22 => OperationCode::RETURN,
-            23 => OperationCode::POP,
+            22 => OperationCode::BUILD_ARRAY,
+            23 => OperationCode::RETURN,
+            24 => OperationCode::POP,
             unknown => {
                 println!("Unknown instruction '{}'", unknown);
                 OperationCode::UNKNOW

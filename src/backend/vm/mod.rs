@@ -8,7 +8,7 @@ use std::{
 use super::{
     bytecode::OperationCode, 
     debug::disassemble_instruction, 
-    object::{FunctionObject, Object}, 
+    object::{self, FunctionObject, Object}, 
     value::Value
 };
 
@@ -122,6 +122,7 @@ impl VM {
                 OperationCode::JUMP_IF_FALSE => self.run_jump_if_false_operation(),
                 OperationCode::LOOP => self.run_loop(),
                 OperationCode::CALL => self.run_call_operation(),
+                OperationCode::BUILD_ARRAY => self.run_build_array_operation(),
                 OperationCode::POP => { self.stack_pop(); },
                 OperationCode::UNKNOW => panic!("Unknow instruction"),
             };
@@ -284,6 +285,30 @@ impl VM {
         let arguments_count = self.read_byte();
         let peek = self.stack_peek(arguments_count as usize);
         self.call_value(peek, arguments_count);
+    }
+
+    fn run_build_array_operation(&mut self) {
+        let mut array = object::ArrayObject {
+            elements: vec![]
+        };
+
+        let array_length = self.read_byte() as usize;
+        for index in 0..array_length {
+            array.elements.push(
+                self.stack_peek(array_length - index - 1)
+            );
+        }
+
+        self.stack_pop();
+        for _ in 0..array_length {
+            self.stack_pop();
+        }
+
+        self.stack_push(
+            Value::Object(
+                Object::Array(array)
+            )
+        );
     }
 
     fn run_return_operation(&mut self) -> bool {

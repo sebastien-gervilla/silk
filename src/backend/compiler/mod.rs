@@ -8,6 +8,8 @@ use crate::backend::{
 
 use crate::frontend::ast;
 
+use super::object::ArrayObject;
+
 const LOCALS_SIZE: usize = 256;
 
 pub struct Compiler<'a> {
@@ -98,6 +100,7 @@ impl<'a> Compiler<'a> {
             ast::Expression::Prefix(prefix) => self.compile_prefix_expression(prefix),
             ast::Expression::Infix(infix) => self.compile_infix_expression(infix),
             ast::Expression::Assign(expression) => self.compile_assignment_expression(expression),
+            ast::Expression::Array(expression) => self.compile_array_expression(expression),
             ast::Expression::Block(expression) => self.compile_block_expression(expression),
             ast::Expression::If(expression) => self.compile_if_expression(expression),
             ast::Expression::While(expression) => self.compile_while_expression(expression),
@@ -313,6 +316,19 @@ impl<'a> Compiler<'a> {
             },
             None => todo!() // TODO: We could assume this is a global variable if we support it.
         }
+    }
+
+    fn compile_array_expression(&mut self, expression: &ast::ArrayExpression) {
+        for element in &expression.elements {
+            self.compile_expression(element);
+        }
+
+        if expression.elements.len() > 255 {
+            panic!("Array initialization cannot contain more than 255 items");
+        }
+        
+        self.function.chunk.add_operation(OperationCode::BUILD_ARRAY, expression.node.token.line);
+        self.function.chunk.add_instruction(expression.elements.len() as u8, expression.node.token.line);
     }
 
     fn compile_block_expression(&mut self, expression: &ast::BlockExpression) {

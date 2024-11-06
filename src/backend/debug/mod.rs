@@ -44,6 +44,7 @@ pub fn disassemble_instruction(chunk: &Chunk, offset: usize) -> usize {
         OperationCode::JUMP_IF_FALSE => return handle_jump_instruction("JUMP_IF_FALSE", chunk, offset, 1),
         OperationCode::LOOP => return handle_jump_instruction("LOOP", chunk, offset, -1),
         OperationCode::CALL => return handle_byte_instruction("CALL", chunk, offset),
+        OperationCode::BUILD_ARRAY => return handle_byte_instruction("BUILD_ARRAY", chunk, offset),
         OperationCode::RETURN => return handle_simple_instruction("RETURN", offset),
         OperationCode::POP => return handle_simple_instruction("POP", offset),
         OperationCode::UNKNOW => println!("UNKNOW {:?}", instruction),
