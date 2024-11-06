@@ -253,4 +253,17 @@ mod tests {
         test_parse(&code);
     }
 
+    #[test]
+    fn test_parse_index_expression() {
+        let code = String::from("
+            indexed[index];
+        ");
+        test_parse(&code);
+
+        let code = String::from("
+            array[call()];
+        ");
+        test_parse(&code);
+    }
+
 }

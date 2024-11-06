@@ -22,13 +22,14 @@ pub enum Precedence {
 	PRODUCT,        // *, /
 	PREFIX,         // -expression, !expression
 	ACCESS,         // expression::expression
+	INDEX,          // identifier[expression]
 	CALL,           // identifier(expression, expression)
 }
 
 type Precedences = HashMap<TokenKind, Precedence>;
 
 fn get_precedences() -> Precedences {
-    let mut precedences = Precedences::with_capacity(12);
+    let mut precedences = Precedences::with_capacity(13);
 
     precedences.insert(TokenKind::ASSIGN, Precedence::ASSIGNMENT);
     precedences.insert(TokenKind::OR, Precedence::OR);
@@ -42,6 +43,7 @@ fn get_precedences() -> Precedences {
     precedences.insert(TokenKind::ASTERISK, Precedence::PRODUCT);
     precedences.insert(TokenKind::SLASH, Precedence::PRODUCT);
     precedences.insert(TokenKind::DOUBLECOLON, Precedence::ACCESS);
+    precedences.insert(TokenKind::LBRACKET, Precedence::INDEX);
     precedences.insert(TokenKind::LPAREN, Precedence::CALL);
 
     precedences
@@ -80,7 +82,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
 }
 
 fn get_infix_parsing_functions() -> InfixParsingFunctions {
-    let mut functions: InfixParsingFunctions = HashMap::with_capacity(12);
+    let mut functions: InfixParsingFunctions = HashMap::with_capacity(13);
 
     functions.insert(TokenKind::PLUS, parse_infix_expression);
     functions.insert(TokenKind::MINUS, parse_infix_expression);
@@ -95,6 +97,7 @@ fn get_infix_parsing_functions() -> InfixParsingFunctions {
 
     functions.insert(TokenKind::ASSIGN, parse_assignment_expression);
     functions.insert(TokenKind::DOUBLECOLON, parse_access_expression);
+    functions.insert(TokenKind::LBRACKET, parse_index_expression);
     
     functions.insert(TokenKind::LPAREN, parse_call_expression);
 
@@ -740,6 +743,28 @@ fn parse_access_expression(parser: &mut Parser, left_expression: Box<ast::Expres
                 node,
                 left_expression,
                 right_expression,
+            }
+        )
+    )
+}
+
+fn parse_index_expression(parser: &mut Parser, left_expression: Box<ast::Expression>) -> Box<ast::Expression> {
+    let node = ast::Node {
+        token: parser.get_current_token()
+    };
+
+    parser.next_token();
+
+    let index_expression = parse_expression(parser, Precedence::LOWEST);
+
+    parser.assert_peek(TokenKind::RBRACKET);
+
+    return Box::new(
+        ast::Expression::Index(
+            ast::IndexExpression {
+                node,
+                indexed: left_expression,
+                index: index_expression,
             }
         )
     )

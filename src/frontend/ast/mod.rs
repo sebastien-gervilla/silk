@@ -48,6 +48,7 @@ pub enum Expression {
     Call(CallExpression),
     Return(ReturnExpression),
     Access(AccessExpression),
+    Index(IndexExpression),
 }
 
 pub struct Identifier {
@@ -145,4 +146,10 @@ pub struct AccessExpression {
     pub node: Node,
     pub left_expression: Box<Expression>,
     pub right_expression: Box<Expression>,
+}
+
+pub struct IndexExpression {
+    pub node: Node,
+    pub indexed: Box<Expression>,
+    pub index: Box<Expression>,
 }
