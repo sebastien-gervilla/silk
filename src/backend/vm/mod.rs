@@ -327,6 +327,10 @@ impl VM {
             unexpected => panic!("Expected array, instead got {:?}", unexpected),
         };
 
+        if index >= array.elements.len() {
+            panic!("Out of bounds error: array length is {}, but index is {}", array.elements.len(), index);
+        }
+
         self.stack_push(array.elements[index].clone());
     }
 
