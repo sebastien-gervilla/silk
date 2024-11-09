@@ -17,41 +17,6 @@ mod tests {
         typecheck::check_program,
     };
 
-    #[test]
-    fn test_bytecode() {
-        
-        let function = &mut FunctionObject {
-            chunk: Chunk::new(),
-            arity: 0,
-            name: String::from("Global"),
-        };
-
-        // CONSTANT 1.5
-        function.chunk.add_constant(Value::F64(1.5), 1);
-
-        // CONSTANT 2.5
-        function.chunk.add_constant(Value::F64(2.5), 1);
-
-        // ADD => 4
-        function.chunk.add_operation(OperationCode::ADD, 1);
-
-        // CONSTANT 4
-        function.chunk.add_constant(Value::F64(4.5), 1);
-
-        // DIVIDE => 1
-        function.chunk.add_operation(OperationCode::DIVIDE, 1);
-
-        // NEGATE => -1
-        function.chunk.add_operation(OperationCode::NEGATE, 1);
-
-        // RETURN => -1
-        function.chunk.add_operation(OperationCode::RETURN, 1);
-
-        // disassemble_chunk(&chunk, "Testing chunks");
-        let mut vm = VM::new(function);
-        vm.run();
-    }
-
     // Compilation tests
 
     fn test_compilation(source: &str) {

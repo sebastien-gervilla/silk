@@ -94,8 +94,8 @@ mod tests {
                     x;
                 } else {
                     return 2;
-                };
-            };
+                }
+            }
         ";
         test_typecheck(code);
     }
@@ -103,9 +103,9 @@ mod tests {
     #[test]
     fn test_typecheck_call_expression() {
         let code = "
-            fn my_function() -> int {
+            fn my_function() {
                 let x = 10;
-            };
+            }
 
             my_function();
         ";
@@ -114,7 +114,8 @@ mod tests {
         let code = "
             fn my_function() -> int {
                 let x = 10;
-            };
+                return x;
+            }
 
             let x = my_function() + 4;
         ";
@@ -153,7 +154,7 @@ mod tests {
         let code = "
             if !true {
                 -5;
-            };
+            }
         ";
         test_typecheck(code);
     }
@@ -164,7 +165,7 @@ mod tests {
             while true {
                 let x = 5;
                 12;
-            };
+            }
         ";
         test_typecheck(code);
     }
