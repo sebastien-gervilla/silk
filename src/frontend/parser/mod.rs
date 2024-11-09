@@ -74,6 +74,7 @@ fn get_prefix_parsing_functions() -> PrefixParsingFunctions {
     functions.insert(TokenKind::LBRACE, parse_block_expression);
     functions.insert(TokenKind::IF, parse_if_expression);
     functions.insert(TokenKind::WHILE, parse_while_expression);
+    functions.insert(TokenKind::BREAK, parse_break_expression);
 
     functions.insert(TokenKind::NOT, parse_prefix_expression);
     functions.insert(TokenKind::MINUS, parse_prefix_expression);
@@ -685,6 +686,18 @@ fn parse_while_expression(parser: &mut Parser) -> Box<ast::Expression> {
                 node,
                 condition,
                 iteration
+            }
+        )
+    )
+}
+
+fn parse_break_expression(parser: &mut Parser) -> Box<ast::Expression> {
+    return Box::new(
+        ast::Expression::Break(
+            ast::BreakExpression {
+                node: ast::Node {
+                    token: parser.get_current_token()
+                },
             }
         )
     )

@@ -45,6 +45,7 @@ pub enum Expression {
     Block(BlockExpression),
     If(IfExpression),
     While(WhileExpression),
+    Break(BreakExpression),
     Call(CallExpression),
     Return(ReturnExpression),
     Access(AccessExpression),
@@ -129,6 +130,10 @@ pub struct WhileExpression {
     pub node: Node,
     pub condition: Box<Expression>,
     pub iteration: Box<Expression>,
+}
+
+pub struct BreakExpression {
+    pub node: Node,
 }
 
 pub struct CallExpression {

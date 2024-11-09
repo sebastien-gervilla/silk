@@ -167,6 +167,16 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_break_expression() {
+        let code = String::from("
+            while x > 1 {
+                break;
+            }
+        ");
+        test_parse(&code);
+    }
+
+    #[test]
     fn test_parse_function() {
         let code = String::from("
             fn myFunction() {
