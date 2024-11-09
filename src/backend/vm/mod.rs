@@ -8,7 +8,7 @@ use std::{
 use super::{
     bytecode::OperationCode, 
     debug::disassemble_instruction, 
-    object::{FunctionObject, Object}, 
+    object::{self, FunctionObject, Object}, 
     value::Value
 };
 
@@ -122,6 +122,8 @@ impl VM {
                 OperationCode::JUMP_IF_FALSE => self.run_jump_if_false_operation(),
                 OperationCode::LOOP => self.run_loop(),
                 OperationCode::CALL => self.run_call_operation(),
+                OperationCode::BUILD_ARRAY => self.run_build_array_operation(),
+                OperationCode::INDEX_ARRAY => self.run_index_array_operation(),
                 OperationCode::POP => { self.stack_pop(); },
                 OperationCode::UNKNOW => panic!("Unknow instruction"),
             };
@@ -284,6 +286,52 @@ impl VM {
         let arguments_count = self.read_byte();
         let peek = self.stack_peek(arguments_count as usize);
         self.call_value(peek, arguments_count);
+    }
+
+    fn run_build_array_operation(&mut self) {
+        let mut array = object::ArrayObject {
+            elements: vec![]
+        };
+
+        let array_length = self.read_byte() as usize;
+        for index in 0..array_length {
+            array.elements.push(
+                self.stack_peek(array_length - index - 1)
+            );
+        }
+
+        for _ in 0..array_length {
+            self.stack_pop();
+        }
+
+        self.stack_push(
+            Value::Object(
+                Object::Array(array)
+            )
+        );
+    }
+
+    fn run_index_array_operation(&mut self) {
+        let index = match self.stack_pop() {
+            Value::F64(index) => index as usize,
+            unexpected => panic!("Expected index to be int, instead got {:?}", unexpected),
+        };
+
+        let array = match self.stack_pop() {
+            Value::Object(object) => {
+                match object {
+                    Object::Array(array) => array,
+                    unexpected => panic!("Expected array, instead got {:?}", unexpected),
+                }
+            },
+            unexpected => panic!("Expected array, instead got {:?}", unexpected),
+        };
+
+        if index >= array.elements.len() {
+            panic!("Out of bounds error: array length is {}, but index is {}", array.elements.len(), index);
+        }
+
+        self.stack_push(array.elements[index].clone());
     }
 
     fn run_return_operation(&mut self) -> bool {

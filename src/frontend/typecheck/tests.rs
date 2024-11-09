@@ -184,4 +184,46 @@ mod tests {
         test_typecheck(code);
     }
 
+    #[test]
+    fn test_typecheck_array_expression() {
+        let code = "
+            let x: [int] = [1, 2, 3];
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_typecheck_wrong_array_expression() {
+        let code = "
+            let x: [bool] = [true, 2, 3];
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    fn test_typecheck_index_expression() {
+        let code = "
+            let array: [int] = [1, 2, 3];
+            let x: int = array[0];
+        ";
+        test_typecheck(code);
+
+        let code = "
+            let array: [[int]] = [[1]];
+            let x: int = array[0][0];
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_typecheck_wrong_index_expression() {
+        let code = "
+            let array: [int] = [1, 2, 3];
+            let x: bool = array[0];
+        ";
+        test_typecheck(code);
+    }
+
 }

@@ -1,8 +1,9 @@
-use super::bytecode::Chunk;
+use super::{bytecode::Chunk, value::Value};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Object {
     String(StringObject),
+    Array(ArrayObject),
     Function(FunctionObject),
 }
 
@@ -10,6 +11,11 @@ pub enum Object {
 pub struct StringObject {
     pub length: usize,
     pub value: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ArrayObject {
+    pub elements: Vec<Value>,
 }
 
 #[derive(Debug, Clone)]

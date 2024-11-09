@@ -775,6 +775,7 @@ fn parse_index_expression(parser: &mut Parser, left_expression: Box<ast::Express
 fn parse_type(parser: &mut Parser) -> Type {
     match parser.current_token.kind {
         TokenKind::PRIMITIVE_TYPE => parse_primitive_type(parser),
+        TokenKind::LBRACKET => parse_array_type(parser),
         _ => {
             parser.add_error(format!("Invalid type '{}'", parser.current_token.value));
             Type::Integer
@@ -792,4 +793,11 @@ fn parse_primitive_type(parser: &mut Parser) -> Type {
             Type::None
         },
     }
+}
+
+fn parse_array_type(parser: &mut Parser) -> Type {
+    parser.next_token();
+    let array_type = parse_type(parser);
+    parser.assert_peek(TokenKind::RBRACKET);
+    return Type::Array(Box::new(array_type));
 }

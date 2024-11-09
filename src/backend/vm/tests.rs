@@ -193,4 +193,29 @@ mod tests {
         ");
     }
 
+    #[test]
+    fn test_compile_array_expression() {
+        println!("\n======== Testing array expression ========\n");
+        test_compilation("
+            {
+                let x = [0, 1, 2];
+            }
+        ");
+    }
+
+    #[test]
+    fn test_compile_index_expression() {
+        println!("\n======== Testing index expression ========\n");
+        test_compilation("
+            {
+                let x = [0, 1];
+                if x[1] == 1 {
+                    true;
+                } else {
+                    false;
+                }
+            }
+        ");
+    }
+
 }

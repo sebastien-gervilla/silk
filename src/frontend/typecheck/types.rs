@@ -7,7 +7,8 @@ pub enum Type {
     Integer,
     Boolean,
     String,
-    Function(Vec<Type>, Box<Type>)
+    Array(Box<Type>),
+    Function(Vec<Type>, Box<Type>),
 }
 
 pub type TypeEnvironment = HashMap<String, Type>;

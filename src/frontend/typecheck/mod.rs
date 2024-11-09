@@ -154,7 +154,11 @@ fn check_statement(symbol_table: &mut SymbolTable, statement: &ast::Statement) {
 fn check_let_statement(symbol_table: &mut SymbolTable, statement: &ast::LetStatement) {
 
     let assigned_type = match &statement.expression {
-        Some(expression) => synthesize_expression(symbol_table, expression),
+        Some(expression) => {
+            let assigned_type = synthesize_expression(symbol_table, expression);
+            check_expression(symbol_table, expression, assigned_type.clone());
+            assigned_type
+        },
         None => {
             todo!("Requires typing annotation.")
         },
@@ -201,11 +205,13 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::Prefix(expression) => check_prefix_expession(symbol_table, expression, expected_type),
         ast::Expression::Infix(expression) => check_infix_expession(symbol_table, expression, expected_type),
         ast::Expression::Assign(expression) => check_assignment_expression(symbol_table, expression, expected_type),
+        ast::Expression::Array(expression) => check_array_expression(symbol_table, expression, expected_type),
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
         ast::Expression::If(expression) => check_if_expression(symbol_table, expression, expected_type),
         ast::Expression::While(expression) => check_while_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         ast::Expression::Return(expression) => check_return_expression(symbol_table, expression),
+        ast::Expression::Index(expression) => check_index_expression(symbol_table, expression, expected_type),
         _ => todo!()
     }
 }
@@ -324,6 +330,18 @@ fn check_assignment_expression(symbol_table: &mut SymbolTable, expression: &ast:
     check_expression(symbol_table, &expression.expression, variable_type);
 }
 
+fn check_array_expression(symbol_table: &mut SymbolTable, expression: &ast::ArrayExpression, expected_type: Type) {
+    let array_type = match expected_type {
+        Type::Array(array_type) => array_type,
+        _ => panic!("Type error: Expected type {:?}, got array instead.", expected_type),
+    };
+
+    for element in &expression.elements {
+        // TODO: "Type" should be passed as reference
+        check_expression(symbol_table, element, *array_type.clone());
+    }
+}
+
 fn check_block_expression(symbol_table: &mut SymbolTable, expression: &ast::BlockExpression, expected_type: Type) {
 
     for statement in &expression.statements {
@@ -414,6 +432,20 @@ fn check_return_expression(symbol_table: &SymbolTable, expression: &ast::ReturnE
     }
 }
 
+fn check_index_expression(symbol_table: &mut SymbolTable, expression: &ast::IndexExpression, expected_type: Type) {
+    check_expression(symbol_table, &expression.index, Type::Integer);
+    let indexed_type = synthesize_expression(symbol_table, &expression.indexed);
+
+    match indexed_type {
+        Type::Array(array_type) => {
+            if array_type.as_ref() != &expected_type {
+                panic!("Type error: Expected type {:?}, got {:?} instead.", expected_type, array_type);
+            }
+        },
+        actual_type => panic!("Type error: Expected type array, got {:?} instead.", actual_type),
+    }
+}
+
 // Synthesizing
 
 fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expression) -> Type {
@@ -426,6 +458,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::Prefix(expression) => synthesize_prefix_expression(expression),
         ast::Expression::Infix(expression) => synthesize_infix_expression(expression),
         ast::Expression::Assign(expression) => synthesize_assignment_expression(expression),
+        ast::Expression::Array(expression) => synthesize_array_expression(symbol_table, expression),
         ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
         ast::Expression::While(_) => Type::Void,
@@ -435,6 +468,7 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
             // TODO: synthesize_expression must return an optional type
             // synthesize_expression(symbol_table, &expression.expression)
         },
+        ast::Expression::Index(expression) => synthesize_index_expression(symbol_table, expression),
         _ => todo!(),
     }
 }
@@ -472,6 +506,12 @@ fn synthesize_infix_expression(expression: &ast::InfixExpression) -> Type {
 
 fn synthesize_assignment_expression(_: &ast::AssignmentExpression) -> Type {
     return Type::Void // TODO: Assignment expressions may return the assigned value
+}
+
+// The type of the array should be determined on the first element
+fn synthesize_array_expression(symbol_table: &SymbolTable, expression: &ast::ArrayExpression) -> Type {
+    let array_type = synthesize_expression(symbol_table, &expression.elements[0]);
+    return Type::Array(Box::new(array_type))
 }
 
 fn synthesize_block_expression(symbol_table: &SymbolTable, expression: &ast::BlockExpression) -> Type {
@@ -525,4 +565,13 @@ fn synthesize_call_expression(symbol_table: &SymbolTable, expression: &ast::Call
     };
 
     return function_symbol.return_type.clone()
+}
+
+fn synthesize_index_expression(symbol_table: &SymbolTable, expression: &ast::IndexExpression) -> Type {
+    let indexed_type = synthesize_expression(symbol_table, &expression.indexed);
+
+    match indexed_type {
+        Type::Array(array_type) => *array_type,
+        actual_type => panic!("Type error: Expected type array, got {:?} instead.", actual_type),
+    }
 }
