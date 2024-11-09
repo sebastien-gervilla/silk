@@ -209,6 +209,7 @@ fn check_expression(symbol_table: &mut SymbolTable, expression: &ast::Expression
         ast::Expression::Block(expression) => check_block_expression(symbol_table, expression, expected_type),
         ast::Expression::If(expression) => check_if_expression(symbol_table, expression, expected_type),
         ast::Expression::While(expression) => check_while_expression(symbol_table, expression, expected_type),
+        ast::Expression::Break(expression) => check_break_expression(symbol_table, expression, expected_type),
         ast::Expression::Call(expression) => check_call_expression(symbol_table, expression, expected_type),
         ast::Expression::Return(expression) => check_return_expression(symbol_table, expression),
         ast::Expression::Index(expression) => check_index_expression(symbol_table, expression, expected_type),
@@ -389,6 +390,10 @@ fn check_while_expression(symbol_table: &mut SymbolTable, expression: &ast::Whil
     }
 }
 
+fn check_break_expression(_: &mut SymbolTable, _: &ast::BreakExpression, _: Type) {
+    // TODO: This needs semantic analysis, to check if we're in a loop
+}
+
 fn check_call_expression(symbol_table: &mut SymbolTable, expression: &ast::CallExpression, expected_type: Type) {
 
     let get_symbol_result = match expression.identifier.as_ref() {
@@ -462,6 +467,9 @@ fn synthesize_expression(symbol_table: &SymbolTable, expression: &ast::Expressio
         ast::Expression::Block(expression) => synthesize_block_expression(symbol_table, expression),
         ast::Expression::If(expression) => synthesize_if_expression(symbol_table, expression),
         ast::Expression::While(_) => Type::Void,
+        ast::Expression::Break(_) => {
+            return Type::None; // Just as return, it doesn't hold the value
+        },
         ast::Expression::Call(expression) => synthesize_call_expression(symbol_table, expression),
         ast::Expression::Return(_) => {
             return Type::None;

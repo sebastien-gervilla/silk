@@ -171,6 +171,18 @@ mod tests {
     }
 
     #[test]
+    fn test_typecheck_break_expression() {
+        let code = "
+            while true {
+                let x: int = if true {
+                    break;
+                };
+            }
+        ";
+        test_typecheck(code);
+    }
+
+    #[test]
     #[should_panic]
     fn test_typecheck_wrong_nested_blocks() {
         let code = "
