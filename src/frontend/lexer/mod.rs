@@ -219,7 +219,7 @@ impl<'a> Lexer<'a> {
         let initial_position = self.position + 1;
 
         self.next_character();
-        while self.character != b'\'' {
+        while self.character != b'\'' && self.character != 0 {
             self.next_character();
         }
     
@@ -233,7 +233,7 @@ impl<'a> Lexer<'a> {
         let initial_position = self.position + 1;
 
         self.next_character();
-        while self.character != b'"' {
+        while self.character != b'"' && self.character != 0 {
             self.next_character();
         }
     
