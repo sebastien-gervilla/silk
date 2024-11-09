@@ -41,7 +41,7 @@ mod tests {
 
     #[test]
     fn test_read_characters() {
-        let code = "'''".to_string();
+        let code = "'c'".to_string();
         let expected_tokens = vec![
             TokenKind::CHARACTER,
         ];
